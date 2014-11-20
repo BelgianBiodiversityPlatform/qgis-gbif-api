@@ -185,7 +185,10 @@ class GBIFOccurrences:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            occ = Api().get_occurrences(None, None)
+            scientific_name = self.dlg.scientific_name.text()
+            filters = {'scientificName': scientific_name}
 
-            layer = create_and_add_layer('tmp', attributes=('toto',))
+            occ = Api().get_occurrences(filters)
+
+            layer = create_and_add_layer(scientific_name, attributes=('toto',))
             add_gbif_occ_to_layer(occ, layer)

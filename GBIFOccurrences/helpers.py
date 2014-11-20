@@ -26,7 +26,6 @@ def add_gbif_occ_to_layer(occurrences, layer):
 
         #Todo: correspondance between id and field name
         #feat.setAttribute(0, 'hello')
-        print o
         feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(o['decimalLongitude'], o['decimalLatitude'])))
         features.append(feat)
 

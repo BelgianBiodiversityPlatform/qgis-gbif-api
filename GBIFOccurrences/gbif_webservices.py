@@ -13,11 +13,27 @@ import requests
 class Api(object):
     ENDPOINT = 'http://api.gbif.org/v1/'
     OCCURRENCES_SEARCH_URL = urljoin(ENDPOINT, "occurrence/search")
+    RECORDS_PER_PAGE = 300  # Maximum currently supported by API
 
-    def get_occurrences(self, filters, format):
-        p = {'hasCoordinate': 'true', 'scientificName': 'tetraodon fluviatilis'}
-        req = requests.get(self.OCCURRENCES_SEARCH_URL, params=p)
-        resp = req.json()
+    def get_occurrences(self, filters):
+        fixed_filters = {'hasCoordinate': 'true', 'limit': self.RECORDS_PER_PAGE}
+        p = dict(filters.items() + fixed_filters.items())
 
+        results = []
+        offset = 0
+        while True:
+            p['offset'] = offset
+
+            req = requests.get(self.OCCURRENCES_SEARCH_URL, params=p)
+            print req.url
+
+            resp = req.json()
+            [results.append(r) for r in resp['results']]
+
+            if resp['endOfRecords']:
+                break
+
+            offset = offset + self.RECORDS_PER_PAGE
+        
         # TODO iterate over all results !!
-        return resp['results']
+        return results

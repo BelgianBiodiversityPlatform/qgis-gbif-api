@@ -25,7 +25,6 @@ class Api(object):
             p['offset'] = offset
 
             req = requests.get(self.OCCURRENCES_SEARCH_URL, params=p)
-            print req.url
 
             resp = req.json()
             [results.append(r) for r in resp['results']]

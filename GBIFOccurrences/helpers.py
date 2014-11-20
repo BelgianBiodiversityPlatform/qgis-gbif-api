@@ -2,11 +2,7 @@ from qgis.core import (QgsVectorLayer, QgsMapLayerRegistry, QgsFeature, QgsGeome
 
 
 def create_and_add_layer(name, attributes):
-    mem_layer = QgsVectorLayer("Point?crs=epsg:4326", name, "memory")
-
-    pr = mem_layer.dataProvider()
-    # for a in attributes:
-    #     pr.addAttributes([QgsField(a)])
+    mem_layer = QgsVectorLayer("Point?crs=epsg:4326&field=scientificname:string(255)&field=country:string(255)", name, "memory")
 
     QgsMapLayerRegistry.instance().addMapLayer(mem_layer)
 
@@ -25,7 +21,7 @@ def add_gbif_occ_to_layer(occurrences, layer):
         #feat.setFields(fields)
 
         #Todo: correspondance between id and field name
-        #feat.setAttribute(0, 'hello')
+        feat.setAttributes([o['scientificName'], o['country']])
         feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(o['decimalLongitude'], o['decimalLatitude'])))
         features.append(feat)
 

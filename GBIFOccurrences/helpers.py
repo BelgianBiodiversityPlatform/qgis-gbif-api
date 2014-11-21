@@ -9,19 +9,20 @@ def create_and_add_layer(name, attributes):
     return mem_layer
 
 
+def _get_field_or_empty(o, field_name):
+    if field_name in o:
+        return o[field_name]
+    else:
+        return ''
+
+
 def add_gbif_occ_to_layer(occurrences, layer):
     features = []
-    # fields = layer.dataProvider().fields()
-    # for f in fields:
-    #     print f
 
     for o in occurrences:
         feat = QgsFeature()
         
-        #feat.setFields(fields)
-
-        #Todo: correspondance between id and field name
-        feat.setAttributes([o['scientificName'], o['country']])
+        feat.setAttributes([_get_field_or_empty(o, 'scientificName'), _get_field_or_empty(o, 'country')])
         feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(o['decimalLongitude'], o['decimalLatitude'])))
         features.append(feat)
 

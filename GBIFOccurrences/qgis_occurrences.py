@@ -190,5 +190,5 @@ class GBIFOccurrences:
 
             occ = Api().get_occurrences(filters)
 
-            layer = create_and_add_layer(scientific_name, attributes=('toto',))
+            layer = create_and_add_layer(scientific_name)
             add_gbif_occ_to_layer(occ, layer)

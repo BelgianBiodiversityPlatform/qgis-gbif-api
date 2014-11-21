@@ -29,7 +29,7 @@ from qgis_occurrences_dialog import GBIFOccurrencesDialog
 import os.path
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
-from .gbif_webservices import Api
+from .gbif_webservices import get_all_occurrences
 
 
 class GBIFOccurrences:
@@ -188,7 +188,7 @@ class GBIFOccurrences:
             scientific_name = self.dlg.scientific_name.text()
             filters = {'scientificName': scientific_name}
 
-            occ = Api().get_all_occurrences(filters)
-
             layer = create_and_add_layer(scientific_name)
+            occ = get_all_occurrences(filters)
+            
             add_gbif_occ_to_layer(occ, layer)

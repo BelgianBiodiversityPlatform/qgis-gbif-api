@@ -4,7 +4,7 @@ from PyQt4 import QtCore
 
 def create_and_add_layer(name, epsg_id=4326):
     """Create a new memory layer, add it to the map and return it."""
-    mem_layer = QgsVectorLayer("Point?crs=epsg:{id}".format(id=epsg_id), name, "memory")
+    mem_layer = QgsVectorLayer("Point?crs=epsg:{id}&index=true".format(id=epsg_id), name, "memory")
     QgsMapLayerRegistry.instance().addMapLayer(mem_layer)
 
     return mem_layer

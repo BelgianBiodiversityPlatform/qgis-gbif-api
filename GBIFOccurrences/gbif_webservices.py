@@ -15,7 +15,7 @@ class Api(object):
     OCCURRENCES_SEARCH_URL = urljoin(ENDPOINT, "occurrence/search")
     RECORDS_PER_PAGE = 300  # Maximum currently supported by API
 
-    def get_occurrences(self, filters):
+    def get_all_occurrences(self, filters):
         fixed_filters = {'hasCoordinate': 'true', 'limit': self.RECORDS_PER_PAGE}
         p = dict(filters.items() + fixed_filters.items())
 

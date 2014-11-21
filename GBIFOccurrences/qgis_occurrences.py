@@ -188,7 +188,7 @@ class GBIFOccurrences:
             scientific_name = self.dlg.scientific_name.text()
             filters = {'scientificName': scientific_name}
 
-            occ = Api().get_occurrences(filters)
+            occ = Api().get_all_occurrences(filters)
 
             layer = create_and_add_layer(scientific_name)
             add_gbif_occ_to_layer(occ, layer)

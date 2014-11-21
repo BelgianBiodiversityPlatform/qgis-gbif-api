@@ -22,13 +22,13 @@ def add_gbif_occ_to_layer(occurrences, layer):
     features = []
 
     dp = layer.dataProvider()
-    attrs = []
     for o in occurrences:
+        attrs = []
         for k in o.keys():
             field_index = dp.fieldNameIndex(k)
             if field_index == -1:
                 dp.addAttributes([QgsField(k, QtCore.QVariant.String)])
-                layer.commitChanges()
+                #layer.commitChanges()
             
             attrs.append({'attr': k, 'val': _get_field_or_empty(o, k)})
 

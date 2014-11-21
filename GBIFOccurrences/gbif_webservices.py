@@ -14,24 +14,36 @@ OCCURRENCES_SEARCH_URL = urljoin(ENDPOINT, "occurrence/search")
 RECORDS_PER_PAGE = 300  # Maximum currently supported by API
 
 
-def get_all_occurrences(filters):
+def _finalize_filters(filters):
     fixed_filters = {'hasCoordinate': 'true', 'limit': RECORDS_PER_PAGE}
-    p = dict(filters.items() + fixed_filters.items())
+    return dict(filters.items() + fixed_filters.items())
 
-    results = []
+
+def get_occurrences_in_baches(filters):
+    p = _finalize_filters(filters)
+
+    finished = False
     offset = 0
-    while True:
+    current_count = 0
+    while not finished:
         p['offset'] = offset
-
         req = requests.get(OCCURRENCES_SEARCH_URL, params=p)
 
         resp = req.json()
-        [results.append(r) for r in resp['results']]
 
         if resp['endOfRecords']:
-            break
+            finished = True  # This will be the last turn...
+
+        # We only retrieve this value once...
+        if offset == 0:
+            total_count = resp['count']
+
+        if finished:
+            current_count = total_count
+        else:
+            current_count = current_count + RECORDS_PER_PAGE
+        percentage_done = ((current_count / float(total_count)) * 100)
+        
+        yield (resp['results'], percentage_done)
 
         offset = offset + RECORDS_PER_PAGE
-    
-    # TODO iterate over all results !!
-    return results

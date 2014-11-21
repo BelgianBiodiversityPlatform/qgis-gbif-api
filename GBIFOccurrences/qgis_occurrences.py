@@ -29,7 +29,7 @@ from qgis_occurrences_dialog import GBIFOccurrencesDialog
 import os.path
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
-from .gbif_webservices import get_all_occurrences
+from .gbif_webservices import get_occurrences_in_baches
 
 
 class GBIFOccurrences:
@@ -189,6 +189,7 @@ class GBIFOccurrences:
             filters = {'scientificName': scientific_name}
 
             layer = create_and_add_layer(scientific_name)
-            occ = get_all_occurrences(filters)
             
-            add_gbif_occ_to_layer(occ, layer)
+            for occ, percent in get_occurrences_in_baches(filters):
+                print "Will add " + str(len(occ)) + " records, " + str(percent) + " %"
+                add_gbif_occ_to_layer(occ, layer)

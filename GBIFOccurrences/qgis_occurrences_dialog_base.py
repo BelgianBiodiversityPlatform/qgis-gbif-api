@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qgis_occurrences_dialog_base.ui'
 #
-# Created: Fri Nov 28 11:22:01 2014
+# Created: Fri Nov 28 12:45:47 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_GBIFOccurrencesDialogBase(object):
     def setupUi(self, GBIFOccurrencesDialogBase):
         GBIFOccurrencesDialogBase.setObjectName(_fromUtf8("GBIFOccurrencesDialogBase"))
-        GBIFOccurrencesDialogBase.resize(400, 173)
+        GBIFOccurrencesDialogBase.resize(400, 194)
         self.scientific_name = QtGui.QLineEdit(GBIFOccurrencesDialogBase)
         self.scientific_name.setGeometry(QtCore.QRect(150, 20, 211, 21))
         self.scientific_name.setObjectName(_fromUtf8("scientific_name"))
@@ -34,12 +34,17 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.label.setGeometry(QtCore.QRect(20, 20, 111, 16))
         self.label.setObjectName(_fromUtf8("label"))
         self.progressBar = QtGui.QProgressBar(GBIFOccurrencesDialogBase)
-        self.progressBar.setGeometry(QtCore.QRect(20, 80, 351, 23))
+        self.progressBar.setGeometry(QtCore.QRect(20, 160, 361, 23))
         self.progressBar.setProperty("value", 0)
         self.progressBar.setObjectName(_fromUtf8("progressBar"))
         self.loadButton = QtGui.QPushButton(GBIFOccurrencesDialogBase)
-        self.loadButton.setGeometry(QtCore.QRect(243, 130, 141, 40))
+        self.loadButton.setGeometry(QtCore.QRect(240, 90, 141, 40))
+        self.loadButton.setFlat(False)
         self.loadButton.setObjectName(_fromUtf8("loadButton"))
+        self.loadingLabel = QtGui.QLabel(GBIFOccurrencesDialogBase)
+        self.loadingLabel.setGeometry(QtCore.QRect(20, 140, 361, 16))
+        self.loadingLabel.setText(_fromUtf8(""))
+        self.loadingLabel.setObjectName(_fromUtf8("loadingLabel"))
 
         self.retranslateUi(GBIFOccurrencesDialogBase)
         QtCore.QMetaObject.connectSlotsByName(GBIFOccurrencesDialogBase)
@@ -47,5 +52,6 @@ class Ui_GBIFOccurrencesDialogBase(object):
     def retranslateUi(self, GBIFOccurrencesDialogBase):
         GBIFOccurrencesDialogBase.setWindowTitle(_translate("GBIFOccurrencesDialogBase", "GBIF Occurrences", None))
         self.label.setText(_translate("GBIFOccurrencesDialogBase", "Scientific name:", None))
-        self.loadButton.setText(_translate("GBIFOccurrencesDialogBase", "Load occurrence", None))
+        self.loadButton.setText(_translate("GBIFOccurrencesDialogBase", "Load occurrences", None))
+        self.loadButton.setShortcut(_translate("GBIFOccurrencesDialogBase", "Return", None))
 

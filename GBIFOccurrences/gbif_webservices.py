@@ -44,6 +44,6 @@ def get_occurrences_in_baches(filters):
             current_count = current_count + RECORDS_PER_PAGE
         percentage_done = ((current_count / float(total_count)) * 100)
         
-        yield (resp['results'], percentage_done)
+        yield (resp['results'], total_count, percentage_done)
 
         offset = offset + RECORDS_PER_PAGE

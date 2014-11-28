@@ -43,7 +43,21 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
+        self.to_disable_during_load = (self.loadButton, self.scientific_name)
+
         self.loadButton.clicked.connect(self.load_occurrences)
+
+    def reset_after_search_bar(self):
+        self.progressBar.setValue(0)
+        self.loadingLabel.setText("")
+
+    def disable_controls(self):
+        for widget in self.to_disable_during_load:
+            widget.setDisabled(True)
+
+    def enable_controls(self):
+        for widget in self.to_disable_during_load:
+            widget.setDisabled(False)
 
     def load_occurrences(self):
         scientific_name = self.scientific_name.text()
@@ -51,11 +65,19 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
 
         layer = create_and_add_layer(scientific_name)
             
-        for occ, percent in get_occurrences_in_baches(filters):
+        self.disable_controls()
+
+        already_loaded_records = 0
+        for occ, total_records, percent in get_occurrences_in_baches(filters):
+            already_loaded_records += len(occ)
+
             # FIXME: print statement NEEDED, otherwise unresponsive UI/progressBar
             print "Will add " + str(len(occ)) + " records, " + str(percent) + " %"
+            self.loadingLabel.setText("Adding " + str(already_loaded_records) + "/" + str(total_records))
             self.progressBar.setValue(percent)
             add_gbif_occ_to_layer(occ, layer)
+
+        self.enable_controls()
 
         self.close()
 

@@ -177,6 +177,7 @@ class GBIFOccurrences:
     def run(self):
         """Run method that performs all the real work"""
         # show the dialog
+        self.dlg.reset_after_search_bar()  # If it has already been used...
         self.dlg.show()
         # Run the dialog event loop
         self.dlg.exec_()

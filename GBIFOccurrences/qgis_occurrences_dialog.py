@@ -23,13 +23,48 @@
 
 import os
 
-from PyQt4 import QtGui, uic
+from PyQt4 import QtGui, uic, QtCore, Qt
 
+from qgis.utils import iface
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
 from .gbif_webservices import get_occurrences_in_baches
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_occurrences_dialog_base.ui'))
+
+
+# threads
+class WorkerThread(QtCore.QThread):
+    def __init__(self, parentThread):
+        QtCore.QThread.__init__(self, parentThread)
+    
+    def run(self, args):
+        self.running = True
+        success = self.doWork(args)
+        self.emit(QtCore.SIGNAL("jobFinished( PyQt_PyObject )"), success)
+    
+    def stop(self):
+        self.running = False
+        pass
+    
+    def doWork(self):
+        return True
+
+    def cleanUp(self):
+        pass
+
+
+class LoadOccurrencesThread(WorkerThread):
+    def __init__(self, parentThread):
+        WorkerThread.__init__(self, parentThread)
+    
+    def doWork(self, filters):
+        already_loaded_records = 0
+        for occ, total_records, percent in get_occurrences_in_baches(filters):
+            already_loaded_records += len(occ)
+            self.emit(QtCore.SIGNAL("occurrences( PyQt_PyObject )"), [occ, percent, total_records])
+
+        return True
 
 
 class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
@@ -46,6 +81,31 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         self.to_disable_during_load = (self.loadButton, self.scientific_name)
 
         self.loadButton.clicked.connect(self.load_occurrences)
+        self.workerThread = LoadOccurrencesThread(iface.mainWindow())
+
+    def runThread(self, filters):
+        QtCore.QObject.connect(self.workerThread, QtCore.SIGNAL("occurrences( PyQt_PyObject )"), self.occurrencesFromThread)
+        QtCore.QObject.connect(self.workerThread, QtCore.SIGNAL("jobFinished( PyQt_PyObject )"), self.ui_workerFinished)
+        self.workerThread.run(filters)
+
+    def ui_beforeWorker(self):
+        self.already_loaded_records = 0
+        self.disable_controls()
+
+    def ui_workerFinished(self):
+        self.enable_controls()
+        self.close()
+
+    def occurrencesFromThread(self, args):
+        occ = args[0]
+        percent = args[1]
+        total_records = args[2]
+        self.already_loaded_records += len(occ)
+
+        add_gbif_occ_to_layer(occ, self.current_layer)
+        self.progressBar.setValue(percent)
+        self.loadingLabel.setText("Adding " + str(self.already_loaded_records) + "/" + str(total_records))
+        Qt.QApplication.processEvents()
 
     def reset_after_search_bar(self):
         self.progressBar.setValue(0)
@@ -63,21 +123,8 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         scientific_name = self.scientific_name.text()
         filters = {'scientificName': scientific_name}
 
-        layer = create_and_add_layer(scientific_name)
-            
-        self.disable_controls()
-
-        already_loaded_records = 0
-        for occ, total_records, percent in get_occurrences_in_baches(filters):
-            already_loaded_records += len(occ)
-
-            # FIXME: print statement NEEDED, otherwise unresponsive UI/progressBar
-            print "Will add " + str(len(occ)) + " records, " + str(percent) + " %"
-            self.loadingLabel.setText("Adding " + str(already_loaded_records) + "/" + str(total_records))
-            self.progressBar.setValue(percent)
-            add_gbif_occ_to_layer(occ, layer)
-
-        self.enable_controls()
-
-        self.close()
+        self.current_layer = create_and_add_layer(scientific_name)
+        
+        self.ui_beforeWorker()
+        self.runThread(filters)
 

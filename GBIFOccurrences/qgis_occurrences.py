@@ -28,9 +28,6 @@ import resources_rc
 from qgis_occurrences_dialog import GBIFOccurrencesDialog
 import os.path
 
-from .helpers import create_and_add_layer, add_gbif_occ_to_layer
-from .gbif_webservices import get_occurrences_in_baches
-
 
 class GBIFOccurrences:
     """QGIS Plugin Implementation."""
@@ -182,14 +179,5 @@ class GBIFOccurrences:
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            scientific_name = self.dlg.scientific_name.text()
-            filters = {'scientificName': scientific_name}
-
-            layer = create_and_add_layer(scientific_name)
-            
-            for occ, percent in get_occurrences_in_baches(filters):
-                print "Will add " + str(len(occ)) + " records, " + str(percent) + " %"
-                add_gbif_occ_to_layer(occ, layer)
+        self.dlg.exec_()
+        

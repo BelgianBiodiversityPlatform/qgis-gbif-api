@@ -25,6 +25,9 @@ import os
 
 from PyQt4 import QtGui, uic
 
+from .helpers import create_and_add_layer, add_gbif_occ_to_layer
+from .gbif_webservices import get_occurrences_in_baches
+
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_occurrences_dialog_base.ui'))
 
@@ -39,3 +42,20 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+
+        self.loadButton.clicked.connect(self.load_occurrences)
+
+    def load_occurrences(self):
+        scientific_name = self.scientific_name.text()
+        filters = {'scientificName': scientific_name}
+
+        layer = create_and_add_layer(scientific_name)
+            
+        for occ, percent in get_occurrences_in_baches(filters):
+            # FIXME: print statement NEEDED, otherwise unresponsive UI/progressBar
+            print "Will add " + str(len(occ)) + " records, " + str(percent) + " %"
+            self.progressBar.setValue(percent)
+            add_gbif_occ_to_layer(occ, layer)
+
+        self.close()
+

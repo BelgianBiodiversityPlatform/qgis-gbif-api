@@ -25,13 +25,29 @@ import os
 from PyQt4 import QtGui, uic, Qt
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
-from .gbif_webservices import get_occurrences_in_baches
+from .gbif_webservices import get_occurrences_in_baches, count_occurrences
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_occurrences_dialog_base.ui'))
 
 
 class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
+    # Key: UI label
+    # Value: GBIF filter constants, see
+    # http://gbif.github.io/gbif-api/apidocs/org/gbif/api/vocabulary/BasisOfRecord.html
+    BOR = {
+        "-- All --": None,
+        "Fossilized specimen": "FOSSIL_SPECIMEN",
+        "Human observation": "HUMAN_OBSERVATION",
+        "Literature": "LITERATURE",
+        "Living specimen": "LIVING_SPECIMEN",
+        "Machine observation": "MACHINE_OBSERVATION",
+        "Material sample": "MATERIAL_SAMPLE",
+        "Observation": "OBSERVATION",
+        "Preserved specimen": "PRESERVED_SPECIMEN",
+        "Unknown": "UNKNOWN"
+    }
+
     def __init__(self, parent=None):
         """Constructor."""
         super(GBIFOccurrencesDialog, self).__init__(parent)
@@ -58,22 +74,32 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         for widget in self.to_disable_during_load:
             widget.setDisabled(False)
 
-    def load_occurrences(self):
+    def _ui_to_filters(self):
         scientific_name = self.scientific_name.text()
-        filters = {'scientificName': scientific_name}
+        
+        return {'scientificName': scientific_name,
+                'basisOfRecord': self.BOR[self.basisComboBox.currentText()]}
 
-        layer = create_and_add_layer(scientific_name)
+    def load_occurrences(self):
+        
+        filters = self._ui_to_filters()
+
+        if count_occurrences(filters) != 0:
+            layer = create_and_add_layer(filters['scientificName'])
             
-        self.disable_controls()
+            self.disable_controls()
 
-        already_loaded_records = 0
-        for occ, total_records, percent in get_occurrences_in_baches(filters):
-            already_loaded_records += len(occ)
-            self.loadingLabel.setText("Adding " + str(already_loaded_records) + "/" + str(total_records))
-            self.progressBar.setValue(percent)
-            add_gbif_occ_to_layer(occ, layer)
-            Qt.QApplication.processEvents()  # We need this to make UI responsive (progress bar advance, ...)
+            already_loaded_records = 0
+            
+            for occ, total_records, percent in get_occurrences_in_baches(filters):
+                already_loaded_records += len(occ)
+                self.loadingLabel.setText("Adding " + str(already_loaded_records) + "/" + str(total_records))
+                self.progressBar.setValue(percent)
+                add_gbif_occ_to_layer(occ, layer)
+                Qt.QApplication.processEvents()  # We need this to make UI responsive (progress bar advance, ...)
+            
+            self.enable_controls()
 
-        self.enable_controls()
-
-        self.close()
+            self.close()
+        else:
+            QtGui.QMessageBox.information(self, "Warning", "No results returned.")

@@ -19,12 +19,22 @@ def _finalize_filters(filters):
     return dict(filters.items() + fixed_filters.items())
 
 
+def count_occurrences(filters):
+    p = _finalize_filters(filters)
+    p['offset'] = 0
+    req = requests.get(OCCURRENCES_SEARCH_URL, params=p)
+    resp = req.json()
+    return resp['count']
+
+
 def get_occurrences_in_baches(filters):
     p = _finalize_filters(filters)
 
     finished = False
     offset = 0
     current_count = 0
+    total_count = count_occurrences(filters)
+
     while not finished:
         p['offset'] = offset
         req = requests.get(OCCURRENCES_SEARCH_URL, params=p)
@@ -34,14 +44,11 @@ def get_occurrences_in_baches(filters):
         if resp['endOfRecords']:
             finished = True  # This will be the last turn...
 
-        # We only retrieve this value once...
-        if offset == 0:
-            total_count = resp['count']
-
         if finished:
             current_count = total_count
         else:
             current_count = current_count + RECORDS_PER_PAGE
+
         percentage_done = ((current_count / float(total_count)) * 100)
         
         yield (resp['results'], total_count, percentage_done)

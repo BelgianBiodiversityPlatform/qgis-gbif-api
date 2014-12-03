@@ -53,7 +53,7 @@
    <property name="geometry">
     <rect>
      <x>240</x>
-     <y>90</y>
+     <y>120</y>
      <width>141</width>
      <height>40</height>
     </rect>
@@ -79,6 +79,79 @@
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="basisComboBox">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>50</y>
+     <width>211</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>-- All --</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Fossilized specimen</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Human observation</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Literature</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Living specimen</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Machine observation</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Material sample</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Observation</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Preserved specimen</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Unknown</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>50</y>
+     <width>111</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Basis of record:</string>
    </property>
   </widget>
  </widget>

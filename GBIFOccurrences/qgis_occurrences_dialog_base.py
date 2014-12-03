@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qgis_occurrences_dialog_base.ui'
 #
-# Created: Wed Dec  3 11:05:05 2014
+# Created: Wed Dec  3 11:12:07 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -48,16 +48,6 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.basisComboBox = QtGui.QComboBox(GBIFOccurrencesDialogBase)
         self.basisComboBox.setGeometry(QtCore.QRect(150, 50, 211, 26))
         self.basisComboBox.setObjectName(_fromUtf8("basisComboBox"))
-        self.basisComboBox.addItem(_fromUtf8(""))
-        self.basisComboBox.addItem(_fromUtf8(""))
-        self.basisComboBox.addItem(_fromUtf8(""))
-        self.basisComboBox.addItem(_fromUtf8(""))
-        self.basisComboBox.addItem(_fromUtf8(""))
-        self.basisComboBox.addItem(_fromUtf8(""))
-        self.basisComboBox.addItem(_fromUtf8(""))
-        self.basisComboBox.addItem(_fromUtf8(""))
-        self.basisComboBox.addItem(_fromUtf8(""))
-        self.basisComboBox.addItem(_fromUtf8(""))
         self.label_2 = QtGui.QLabel(GBIFOccurrencesDialogBase)
         self.label_2.setGeometry(QtCore.QRect(20, 50, 111, 30))
         self.label_2.setObjectName(_fromUtf8("label_2"))
@@ -70,15 +60,5 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.label.setText(_translate("GBIFOccurrencesDialogBase", "Scientific name:", None))
         self.loadButton.setText(_translate("GBIFOccurrencesDialogBase", "Load occurrences", None))
         self.loadButton.setShortcut(_translate("GBIFOccurrencesDialogBase", "Return", None))
-        self.basisComboBox.setItemText(0, _translate("GBIFOccurrencesDialogBase", "-- All --", None))
-        self.basisComboBox.setItemText(1, _translate("GBIFOccurrencesDialogBase", "Fossilized specimen", None))
-        self.basisComboBox.setItemText(2, _translate("GBIFOccurrencesDialogBase", "Human observation", None))
-        self.basisComboBox.setItemText(3, _translate("GBIFOccurrencesDialogBase", "Literature", None))
-        self.basisComboBox.setItemText(4, _translate("GBIFOccurrencesDialogBase", "Living specimen", None))
-        self.basisComboBox.setItemText(5, _translate("GBIFOccurrencesDialogBase", "Machine observation", None))
-        self.basisComboBox.setItemText(6, _translate("GBIFOccurrencesDialogBase", "Material sample", None))
-        self.basisComboBox.setItemText(7, _translate("GBIFOccurrencesDialogBase", "Observation", None))
-        self.basisComboBox.setItemText(8, _translate("GBIFOccurrencesDialogBase", "Preserved specimen", None))
-        self.basisComboBox.setItemText(9, _translate("GBIFOccurrencesDialogBase", "Unknown", None))
         self.label_2.setText(_translate("GBIFOccurrencesDialogBase", "Basis of record:", None))
 

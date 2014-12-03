@@ -90,56 +90,6 @@
      <height>26</height>
     </rect>
    </property>
-   <item>
-    <property name="text">
-     <string>-- All --</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Fossilized specimen</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Human observation</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Literature</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Living specimen</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Machine observation</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Material sample</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Observation</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Preserved specimen</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Unknown</string>
-    </property>
-   </item>
   </widget>
   <widget class="QLabel" name="label_2">
    <property name="geometry">

@@ -58,9 +58,14 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
+        self._populate_bor()
         self.to_disable_during_load = (self.loadButton, self.scientific_name)
 
         self.loadButton.clicked.connect(self.load_occurrences)
+
+    def _populate_bor(self):
+        vals = self.BOR.keys()
+        self.basisComboBox.addItems(sorted(vals))
 
     def reset_after_search_bar(self):
         self.progressBar.setValue(0)

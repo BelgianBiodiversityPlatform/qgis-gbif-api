@@ -5,13 +5,16 @@ from urlparse import urljoin
 
 parent_dir = os.path.abspath(os.path.dirname(__file__))
 vendor_dir = os.path.join(parent_dir, 'vendor')
-
 sys.path.append(vendor_dir)
 import requests
 
 ENDPOINT = 'http://api.gbif.org/v1/'
 OCCURRENCES_SEARCH_URL = urljoin(ENDPOINT, "occurrence/search")
 RECORDS_PER_PAGE = 300  # Maximum currently supported by API
+
+
+class ConnectionIssue(Exception):
+    pass
 
 
 def _finalize_filters(filters):
@@ -22,9 +25,13 @@ def _finalize_filters(filters):
 def count_occurrences(filters):
     p = _finalize_filters(filters)
     p['offset'] = 0
-    req = requests.get(OCCURRENCES_SEARCH_URL, params=p)
-    resp = req.json()
-    return resp['count']
+    try:
+        req = requests.get(OCCURRENCES_SEARCH_URL, params=p)
+    except requests.exceptions.ConnectionError:
+        raise ConnectionIssue
+    else:
+        resp = req.json()
+        return resp['count']
 
 
 def get_occurrences_in_baches(filters):
@@ -48,9 +55,7 @@ def get_occurrences_in_baches(filters):
             current_count = total_count
         else:
             current_count = current_count + RECORDS_PER_PAGE
-
-        percentage_done = ((current_count / float(total_count)) * 100)
         
-        yield (resp['results'], total_count, percentage_done)
+        yield (resp['results'])
 
         offset = offset + RECORDS_PER_PAGE

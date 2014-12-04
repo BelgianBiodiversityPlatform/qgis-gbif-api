@@ -21,14 +21,23 @@
 """
 
 import os
+import sys
 
 from PyQt4 import QtGui, uic, Qt
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
-from .gbif_webservices import get_occurrences_in_baches, count_occurrences
+from .gbif_webservices import get_occurrences_in_baches, count_occurrences, ConnectionIssue
+
+parent_dir = os.path.abspath(os.path.dirname(__file__))
+vendor_dir = os.path.join(parent_dir, 'vendor')
+sys.path.append(vendor_dir)
+from iso3166 import countries
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_occurrences_dialog_base.ui'))
+
+
+COMBOBOX_ALL_LABEL = "-- All --"
 
 
 class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
@@ -36,7 +45,7 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
     # Value: GBIF filter constants, see
     # http://gbif.github.io/gbif-api/apidocs/org/gbif/api/vocabulary/BasisOfRecord.html
     BOR = {
-        "-- All --": None,
+        COMBOBOX_ALL_LABEL: None,
         "Fossilized specimen": "FOSSIL_SPECIMEN",
         "Human observation": "HUMAN_OBSERVATION",
         "Literature": "LITERATURE",
@@ -59,52 +68,83 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         self.setupUi(self)
 
         self._populate_bor()
+        self._populate_countries()
         self.to_disable_during_load = (self.loadButton, self.scientific_name)
 
         self.loadButton.clicked.connect(self.load_occurrences)
+
+    def _populate_countries(self):
+        self.countryComboBox.addItem(COMBOBOX_ALL_LABEL)
+        for c in countries:
+            self.countryComboBox.addItem(c.name)
+
+    def _get_selected_country_code(self):
+        for c in countries:
+            if self.countryComboBox.currentText() == c.name:
+                return c.alpha2
+        # Not found
+        return None
 
     def _populate_bor(self):
         vals = self.BOR.keys()
         self.basisComboBox.addItems(sorted(vals))
 
-    def reset_after_search_bar(self):
-        self.progressBar.setValue(0)
-        self.loadingLabel.setText("")
-
-    def disable_controls(self):
+    def _disable_controls(self):
         for widget in self.to_disable_during_load:
             widget.setDisabled(True)
 
-    def enable_controls(self):
+    def _enable_controls(self):
         for widget in self.to_disable_during_load:
             widget.setDisabled(False)
+
+    def before_search_ui(self):
+        self._disable_controls()
+
+    def after_search_ui(self):
+        self._enable_controls()
+
+        # Theose have been affected during search
+        self.progressBar.setValue(0)
+        self.loadingLabel.setText("")
+
+    def show_progress(self, already_loaded_records, total_records):
+        self.loadingLabel.setText("Adding " + str(already_loaded_records) + "/" + str(total_records))
+        percent = ((already_loaded_records / float(total_records)) * 100)
+        self.progressBar.setValue(percent)
+
+    def connection_error_message(self):
+        QtGui.QMessageBox.critical(self, "Error", "Cannot connect to GBIF. Please check your Internet connection.")
 
     def _ui_to_filters(self):
         scientific_name = self.scientific_name.text()
         
         return {'scientificName': scientific_name,
-                'basisOfRecord': self.BOR[self.basisComboBox.currentText()]}
+                'basisOfRecord': self.BOR[self.basisComboBox.currentText()],
+                'country': self._get_selected_country_code()}
 
     def load_occurrences(self):
-        
         filters = self._ui_to_filters()
 
-        if count_occurrences(filters) != 0:
-            layer = create_and_add_layer(filters['scientificName'])
-            
-            self.disable_controls()
-
-            already_loaded_records = 0
-            
-            for occ, total_records, percent in get_occurrences_in_baches(filters):
-                already_loaded_records += len(occ)
-                self.loadingLabel.setText("Adding " + str(already_loaded_records) + "/" + str(total_records))
-                self.progressBar.setValue(percent)
-                add_gbif_occ_to_layer(occ, layer)
-                Qt.QApplication.processEvents()  # We need this to make UI responsive (progress bar advance, ...)
-            
-            self.enable_controls()
-
-            self.close()
+        try:
+            count = count_occurrences(filters)
+        except ConnectionIssue:
+            self.connection_error_message()
         else:
-            QtGui.QMessageBox.information(self, "Warning", "No results returned.")
+            if count > 0:  # We have results
+
+                self.before_search_ui()
+                layer = create_and_add_layer(filters['scientificName'])
+
+                already_loaded_records = 0
+                
+                for occ in get_occurrences_in_baches(filters):
+                    already_loaded_records += len(occ)
+                    self.show_progress(already_loaded_records, count)
+                    add_gbif_occ_to_layer(occ, layer)
+                    Qt.QApplication.processEvents()  # We need this to make UI responsive (progress bar advance, ...)
+                
+                self.after_search_ui()
+
+                self.close()
+            else:
+                QtGui.QMessageBox.information(self, "Warning", "No results returned.")

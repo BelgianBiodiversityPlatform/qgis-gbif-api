@@ -25,8 +25,8 @@ import sys
 
 from PyQt4 import QtGui, uic, Qt
 
-from .helpers import create_and_add_layer, add_gbif_occ_to_layer
-from .gbif_webservices import get_occurrences_in_baches, count_occurrences, ConnectionIssue
+from helpers import create_and_add_layer, add_gbif_occ_to_layer
+from gbif_webservices import get_occurrences_in_baches, count_occurrences, ConnectionIssue
 
 parent_dir = os.path.abspath(os.path.dirname(__file__))
 vendor_dir = os.path.join(parent_dir, 'vendor')

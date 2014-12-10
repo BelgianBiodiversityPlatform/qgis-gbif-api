@@ -11,8 +11,14 @@ Under heavy development! Stay tuned.
 Tutorial
 ========
 
-At this stage, install plugin manually within QGIS directory.
+Use
+---
 
-Run tests:
+At this stage, install plugin manually within QGIS directory then enable it in the plugin manager.
 
-$ source scripts/run-env-nico.sh; make test
+Running tests:
+--------------
+
+$ make test
+
+(Currently it is difficult to run tests on Mac OS X since Kyngchaos QGIS packages embed PyQt without the QtTest module.)

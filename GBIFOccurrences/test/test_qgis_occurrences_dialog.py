@@ -41,7 +41,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         self.dialog = None
 
     def test_basic_tetraodon(self):
-        """ Ensure we have a new layer with 51 features when searching for T. fluviatilis"""
+        """ Ensure we have a new layer with 51 features when searching for T. fluviatilis."""
 
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
@@ -65,6 +65,36 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             
             # We should have 51 feature on this layer
             self.assertEqual(new_layer.featureCount(), 51)
+
+    def test_return_shortcut(self):
+        """Ensure the return key also work to launch search."""
+        pass
+
+    def test_basisofrecord_filter(self):
+        pass
+
+    def test_country_filter(self):
+        pass
+
+    def test_layer_name(self):
+        pass
+
+    def test_always_have_coordinates(self):
+        """Ensure we only ask GBIF records with coordinates."""
+        pass
+
+    def test_coordinates(self):
+        """Ensure the POINTS are respecting lat/long from returned data"""
+        pass
+
+    def test_attributes_creation(self):
+        """Ensure we have an attribute created for each field returned in data"""
+        pass
+
+    def test_attributes_content(self):
+        """Ensure the correct values are set in feature attributes (or null)"""
+
+
 
 
 if __name__ == "__main__":

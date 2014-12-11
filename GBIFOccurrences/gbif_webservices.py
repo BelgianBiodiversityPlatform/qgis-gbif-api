@@ -31,7 +31,14 @@ def count_occurrences(filters):
         raise ConnectionIssue
     else:
         resp = req.json()
-        return resp['count']
+
+        try:
+            c = resp['count']
+        except KeyError:
+            # No "count" field when no results
+            if resp['endOfRecords'] and (len(resp['results']) == 0):
+                c = 0
+    return c
 
 
 def get_occurrences_in_baches(filters):

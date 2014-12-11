@@ -17,5 +17,7 @@ def gbif_v1_response(url, request):
     
     if url.query == 'limit=300&offset=0&scientificName=Tetraodon+fluviatilis&hasCoordinate=true':
         content = _sample_data('all_t_fluviatilis.json')
+    elif url.query == 'limit=300&offset=0&scientificName=inexisting&hasCoordinate=true':
+        content = _sample_data('no_results.json')
 
     return response(200, content, headers)

@@ -147,4 +147,4 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
 
                 self.close()
             else:
-                QtGui.QMessageBox.information(self, "Warning", "No results returned.")
+                self.warning_box = QtGui.QMessageBox.information(self, "Warning", "No results returned.")

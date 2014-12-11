@@ -40,6 +40,11 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         """Runs after each test."""
         self.dialog = None
 
+    def launch_search_and_wait(self, waitfor=3):
+        QtTest.QTest.mouseClick(self.dialog.loadButton, QtCore.Qt.LeftButton)
+        # As long as we have a mock object for GBIF webservice, this should be fast
+        QtTest.QTest.qWait(waitfor * 1000)
+
     def test_basic_tetraodon(self):
         """ Ensure we have a new layer with 51 features when searching for T. fluviatilis."""
 
@@ -47,24 +52,30 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
             self.dialog.scientific_name.setText("Tetraodon fluviatilis")
-            QtTest.QTest.mouseClick(self.dialog.loadButton, QtCore.Qt.LeftButton)
-
-            timeout = 20
-            count = 0
-            while count < timeout:
-                QtTest.QTest.qWait(1000)
-
-                if len(QgsMapLayerRegistry().instance().mapLayers()) + 1 == len(existing_layers):
-                    # A new layer has been created
-                    break
-                count += 1
-
+            
+            self.launch_search_and_wait(len(existing_layers))
             # everything went OK, get the new layer
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
             
             # We should have 51 feature on this layer
             self.assertEqual(new_layer.featureCount(), 51)
+
+    def test_no_results(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.scientific_name.setText("inexisting")
+            
+            self.launch_search_and_wait(len(existing_layers))
+            # everything went OK, get the new layer
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            # Ensure no new layer created
+            self.assertEqual(current_layers, existing_layers)
+            # TODO: Ensure we have a message box (AND CLOSE IT !!)
+            # TODO: Ensure the dialog stays open
+            
 
     def test_return_shortcut(self):
         """Ensure the return key also work to launch search."""

@@ -15,7 +15,7 @@ __copyright__ = 'Copyright 2014, Nicolas Noé - Belgian Biodiversity Platform'
 import unittest
 
 
-from PyQt4 import QtCore, QtTest
+from PyQt4 import QtCore, QtTest, QtGui
 
 from qgis.core import QgsMapLayerRegistry
 
@@ -27,6 +27,12 @@ from httmock import HTTMock
 from gbif_mock import gbif_v1_response
 
 QGIS_APP = get_qgis_app()
+
+
+def close_all_messagebox():
+        for widget in QtGui.qApp.topLevelWidgets():
+            if isinstance(widget, QtGui.QMessageBox):
+                QtTest.QTest.keyClick(widget, QtCore.Qt.Key_Enter)
 
 
 class GBIFOccurrencesDialogTest(unittest.TestCase):
@@ -67,22 +73,36 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
             self.dialog.scientific_name.setText("inexisting")
             
+            QtCore.QTimer.singleShot(1000, close_all_messagebox)
+
             self.launch_search_and_wait(len(existing_layers))
             # everything went OK, get the new layer
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
             # Ensure no new layer created
             self.assertEqual(current_layers, existing_layers)
-            # TODO: Ensure we have a message box (AND CLOSE IT !!)
-            # TODO: Ensure the dialog stays open
-            
+            # TODO: Ensure a message box has been shown!
+            # TODO: Ensure the main dialog stays open
 
     def test_return_shortcut(self):
         """Ensure the return key also work to launch search."""
         pass
 
-    def test_basisofrecord_filter(self):
-        pass
+    def test_tetraodon_basisofrecord_filter(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            # 2 filters: scientific name and basis of record
+            self.dialog.scientific_name.setText("Tetraodon fluviatilis")
+            self.dialog.basisComboBox.setCurrentIndex(self.dialog.basisComboBox.findText("Unknown"))
+
+            self.launch_search_and_wait(len(existing_layers))
+            # everything went OK, get the new layer
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+            
+            # We should have 4 feature on this layer
+            self.assertEqual(new_layer.featureCount(), 4)
 
     def test_country_filter(self):
         pass
@@ -104,8 +124,6 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
     def test_attributes_content(self):
         """Ensure the correct values are set in feature attributes (or null)"""
-
-
 
 
 if __name__ == "__main__":

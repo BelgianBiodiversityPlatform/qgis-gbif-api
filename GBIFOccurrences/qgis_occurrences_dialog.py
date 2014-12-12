@@ -131,7 +131,6 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
             self.connection_error_message()
         else:
             if count > 0:  # We have results
-
                 self.before_search_ui()
                 layer = create_and_add_layer(filters['scientificName'])
 
@@ -147,4 +146,4 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
 
                 self.close()
             else:
-                self.warning_box = QtGui.QMessageBox.information(self, "Warning", "No results returned.")
+                QtGui.QMessageBox.information(self, "Warning", "No results returned.")

@@ -125,6 +125,9 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             # We should have 4 feature on this layer
             self.assertEqual(new_layer.featureCount(), 4)
 
+    def test_layer_projection(self):
+        """ Ensure the created layer use EPSG:4326. """
+
     def test_country_filter(self):
         pass
 
@@ -187,8 +190,14 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.assertEqual(record_id_864652968.attribute('basisOfRecord'), 'UNKNOWN')
             self.assertEqual(record_id_90129834.attribute('basisOfRecord'), 'UNKNOWN')
 
-            #from nose.tools import set_trace; set_trace()
-            pass
+            self.assertIn("COORDINATE_ROUNDED", record_id_864652968.attribute('issues'))
+            self.assertIn("GEODETIC_DATUM_ASSUMED_WGS84", record_id_864652968.attribute('issues'))
+            self.assertNotIn("COUNTRY_DERIVED_FROM_COORDINATES", record_id_864652968.attribute('issues'))
+
+            self.assertNotIn("COORDINATE_ROUNDED", record_id_90129834.attribute('issues'))
+            self.assertIn("GEODETIC_DATUM_ASSUMED_WGS84", record_id_90129834.attribute('issues'))
+            self.assertIn("COUNTRY_DERIVED_FROM_COORDINATES", record_id_90129834.attribute('issues'))
+            
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(GBIFOccurrencesDialogTest)

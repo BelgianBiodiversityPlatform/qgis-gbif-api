@@ -18,10 +18,23 @@ def add_features_to_layer(layer, features):
     layer.triggerRepaint()
 
 
-def _get_field_or_empty(o, field_name):
-    if field_name in o:
-        return o[field_name]
-    else:
+# To distinguish sequences from strings
+def is_sequence(arg):
+    return (not hasattr(arg, "strip") and
+            hasattr(arg, "__getitem__") or
+            hasattr(arg, "__iter__"))
+
+
+# Takes data and return a string suitable for a (feature) attribute
+def _get_field_value(o, field_name):
+    value = o[field_name]
+
+    if value:
+        if is_sequence(value):  # Case 1: It's a list
+            return ",".join(value)
+        else:  # Case 2: It's a string
+            return value
+    else:  # Case 3: missing value
         return ''
 
 
@@ -37,7 +50,7 @@ def add_gbif_occ_to_layer(occurrences, layer):
             if field_index == -1:
                 dp.addAttributes([QgsField(k, QtCore.QVariant.String)])
             
-            attrs.append({'attr': k, 'val': _get_field_or_empty(o, k)})
+            attrs.append({'attr': k, 'val': _get_field_value(o, k)})
 
         feat = QgsFeature()
 

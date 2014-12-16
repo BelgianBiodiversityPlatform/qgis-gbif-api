@@ -41,12 +41,13 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
     def setUp(self):
         """Runs before each test."""
         self.dialog = GBIFOccurrencesDialog(None)
+        self.dialog.show()
 
     def tearDown(self):
         """Runs after each test."""
         self.dialog = None
 
-    def launch_search_and_wait(self, waitfor=3):
+    def launch_search_and_wait(self, waitfor=2):
         QtTest.QTest.mouseClick(self.dialog.loadButton, QtCore.Qt.LeftButton)
         # As long as we have a mock object for GBIF webservice, this should be fast
         QtTest.QTest.qWait(waitfor * 1000)
@@ -67,6 +68,9 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             # We should have 51 feature on this layer
             self.assertEqual(new_layer.featureCount(), 51)
 
+            # The plugin window should be closed
+            self.assertFalse(self.dialog.isVisible())
+
     def test_no_results(self):
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
@@ -81,12 +85,29 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
             # Ensure no new layer created
             self.assertEqual(current_layers, existing_layers)
+            
             # TODO: Ensure a message box has been shown!
-            # TODO: Ensure the main dialog stays open
+            
+            #from nose.tools import set_trace; set_trace()
+            # Ensure the main dialog stays open
+            self.assertTrue(self.dialog.isVisible())
 
     def test_return_shortcut(self):
         """Ensure the return key also work to launch search."""
-        pass
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.scientific_name.setText("Tetraodon fluviatilis")
+            
+            QtTest.QTest.keyPress(self.dialog, QtCore.Qt.Key_Enter)
+            QtTest.QTest.qWait(1000)
+
+            # everything went OK, get the new layer
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+            
+            # We should have 51 feature on this layer
+            self.assertEqual(new_layer.featureCount(), 51)
 
     def test_tetraodon_basisofrecord_filter(self):
         with HTTMock(gbif_v1_response):

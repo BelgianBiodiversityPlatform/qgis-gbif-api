@@ -139,13 +139,56 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         """Ensure the POINTS are respecting lat/long from returned data"""
         pass
 
-    def test_attributes_creation(self):
-        """Ensure we have an attribute created for each field returned in data"""
-        pass
+    def test_attributes(self):
+        """Test the (features) attributes creation is working. """
+        with HTTMock(gbif_v1_response):
+            # 0. Run a search with 2 filters
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            self.dialog.scientific_name.setText("Tetraodon fluviatilis")
+            self.dialog.basisComboBox.setCurrentIndex(self.dialog.basisComboBox.findText("Unknown"))
 
-    def test_attributes_content(self):
-        """Ensure the correct values are set in feature attributes (or null)"""
+            self.launch_search_and_wait(len(existing_layers))
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+        
+            # 1. Ensure the righ attributes are the layer
+            expected_attributes = ('protocol', 'taxonKey', 'family', 'institutionCode',
+                                   'lastInterpreted', 'speciesKey', 'gbifID', 'genericName',
+                                   'phylum', 'orderKey', 'facts', 'species', 'issues',
+                                   'countryCode', 'basisOfRecord', 'relations', 'classKey',
+                                   'catalogNumber', 'scientificName', 'taxonRank', 'familyKey',
+                                   'kingdom', 'decimalLatitude', 'publishingOrgKey', 'geodeticDatum',
+                                   'collectionCode', 'kingdomKey', 'genusKey', 'locality', 'key',
+                                   'phylumKey', 'class', 'publishingCountry', 'lastCrawled',
+                                   'datasetKey', 'specificEpithet', 'identifiers',
+                                   'decimalLongitude', 'extensions', 'country', 'genus', 'order',
+                                   'identifiedBy', 'lastParsed', 'continent', 'nomenclaturalCode',
+                                   'higherClassification', 'identifier')
+            real_attributes = [new_layer.attributeDisplayName(a) for a in new_layer.pendingAllAttributesList()]
 
+            # 1a. Check that all the expected attributes are found
+            # It should make the union of all fields returned from all records (returned fields vary)
+            for a in expected_attributes:
+                self.assertIn(a, real_attributes)
+
+            # 1b. Also ensure that there are not "unexpected" attributes
+            self.assertEqual(len(real_attributes), len(expected_attributes))
+
+            # 2. Ensure the correct values/content is set
+            new_layer.selectAll()
+            all_features = new_layer.selectedFeatures()
+
+            record_id_864652968 = next(f for f in all_features if f.attribute('gbifID') == "864652698")
+            record_id_90129834 = next(f for f in all_features if f.attribute('gbifID') == "90129834")
+
+            self.assertEqual(record_id_864652968.attribute('institutionCode'), 'FishBase')
+            self.assertEqual(record_id_90129834.attribute('institutionCode'), 'NCL')
+
+            self.assertEqual(record_id_864652968.attribute('basisOfRecord'), 'UNKNOWN')
+            self.assertEqual(record_id_90129834.attribute('basisOfRecord'), 'UNKNOWN')
+
+            #from nose.tools import set_trace; set_trace()
+            pass
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(GBIFOccurrencesDialogTest)

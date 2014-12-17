@@ -1,3 +1,5 @@
+import json
+
 from qgis.core import (QgsVectorLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsField)
 from PyQt4 import QtCore
 
@@ -26,12 +28,13 @@ def is_sequence(arg):
 
 
 # Takes data and return a string suitable for a (feature) attribute
+# It will be either a standard string, either a serialized JSON object in cas of complex structure
 def _get_field_value(o, field_name):
     value = o[field_name]
 
     if value:
-        if is_sequence(value):  # Case 1: It's a list
-            return ",".join(value)
+        if is_sequence(value):  # Case 1: It's a list/dict
+            return json.dumps(value, ensure_ascii=False)
         else:  # Case 2: It's a string
             return value
     else:  # Case 3: missing value

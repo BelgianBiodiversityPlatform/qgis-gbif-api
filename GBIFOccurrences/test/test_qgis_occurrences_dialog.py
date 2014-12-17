@@ -125,6 +125,20 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             # We should have 4 feature on this layer
             self.assertEqual(new_layer.featureCount(), 4)
 
+    def test_ui_during_after_load(self):
+        """ Ensure the UI is disabled during load, and re-enabled later."""
+        with HTTMock(gbif_v1_response):
+            self.dialog.scientific_name.setText("Tetraodon fluviatilis")
+            QtTest.QTest.mouseClick(self.dialog.loadButton, QtCore.Qt.LeftButton)
+
+            # TODO: fix this test... we should try we a long response (several pages) so yield is called...
+            # self.assertFalse(self.dialog.scientific_name.isEnabled())
+
+
+    # TODO: test list of dicts are supported and serialized as JSON
+    # TODO: test unicode is supported in attributes (string and list/dicts)
+
+
     def test_layer_projection(self):
         """ Ensure the created layer use EPSG:4326. """
 
@@ -142,6 +156,27 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         """Ensure the POINTS are respecting lat/long from returned data"""
         pass
 
+    # TODO: merge with test_attributes (or the opposite: split more)
+    def test_attributes_listofdicts(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            self.dialog.scientific_name.setText("canis lupus")
+            self.dialog.countryComboBox.setCurrentIndex(self.dialog.countryComboBox.findText("Germany"))
+
+            self.launch_search_and_wait(len(existing_layers))
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            new_layer.selectAll()
+            all_features = new_layer.selectedFeatures()
+
+            record_id_920936125 = next(f for f in all_features if f.attribute('gbifID') == "920936125")
+            
+            # Here, we ensure it looks like JSON
+            expected_media = '[{"references": "http://www.enjoynature.net/?bild=-1579880650", "format": "text/html"}]'
+            self.assertEqual(expected_media, record_id_920936125.attribute('media'))
+
+    # TODO: Also test when value is NULL
     def test_attributes(self):
         """Test the (features) attributes creation is working. """
         with HTTMock(gbif_v1_response):

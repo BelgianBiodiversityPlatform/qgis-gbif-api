@@ -17,7 +17,7 @@ import unittest
 
 from PyQt4 import QtCore, QtTest, QtGui
 
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import *
 
 from qgis_occurrences_dialog import GBIFOccurrencesDialog
 
@@ -97,7 +97,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
-            self.dialog.scientific_name.setText("Tetraodon fluviatilis")
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             
             QtTest.QTest.keyPress(self.dialog, QtCore.Qt.Key_Enter)
             QtTest.QTest.qWait(1000)
@@ -126,27 +126,65 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.assertEqual(new_layer.featureCount(), 4)
 
     def test_ui_during_after_load(self):
-        """ Ensure the UI is disabled during load, and re-enabled later."""
+        """Ensure the UI is disabled during load, and re-enabled later."""
         with HTTMock(gbif_v1_response):
-            self.dialog.scientific_name.setText("Tetraodon fluviatilis")
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             QtTest.QTest.mouseClick(self.dialog.loadButton, QtCore.Qt.LeftButton)
 
             # TODO: fix this test... we should try we a long response (several pages) so yield is called...
-            # self.assertFalse(self.dialog.scientific_name.isEnabled())
+            # self.assertFalse(self.dialog.scientificNameField.isEnabled())
 
 
     # TODO: test list of dicts are supported and serialized as JSON
     # TODO: test unicode is supported in attributes (string and list/dicts)
 
 
-    def test_layer_projection(self):
-        """ Ensure the created layer use EPSG:4326. """
+    def test_layer_properties(self):
+        """Ensure a few general properties are correct on the new layer."""
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
+            
+            self.launch_search_and_wait(len(existing_layers))
+            # everything went OK, get the new layer
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            # Ensure the created layer use EPSG:4326.
+            self.assertEqual(new_layer.crs().authid(), 'EPSG:4326')
+            self.assertTrue(new_layer.hasGeometryType())
+            
+            # Strangely, this doesn't work because it is QGis.WKBUnknown... strange.
+            #self.assertEqual(new_layer.geometryType(), QGis.WKBPoint)
 
     def test_country_filter(self):
-        pass
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
+            self.dialog.countryComboBox.setCurrentIndex(self.dialog.countryComboBox.findText("Malaysia"))
+            
+            self.launch_search_and_wait(len(existing_layers))
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            self.assertEqual(new_layer.featureCount(), 5)
+
 
     def test_layer_name(self):
-        pass
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
+            
+            self.launch_search_and_wait(len(existing_layers))
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            # Currently, the layer name is the scientific name field
+            self.assertEqual(new_layer.name(), "Tetraodon fluviatilis")
+
 
     def test_always_have_coordinates(self):
         """Ensure we only ask GBIF records with coordinates."""
@@ -160,7 +198,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
     def test_attributes_listofdicts(self):
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
-            self.dialog.scientific_name.setText("canis lupus")
+            self.dialog.scientificNameField.setText("canis lupus")
             self.dialog.countryComboBox.setCurrentIndex(self.dialog.countryComboBox.findText("Germany"))
 
             self.launch_search_and_wait(len(existing_layers))
@@ -182,7 +220,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         with HTTMock(gbif_v1_response):
             # 0. Run a search with 2 filters
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
-            self.dialog.scientific_name.setText("Tetraodon fluviatilis")
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.basisComboBox.setCurrentIndex(self.dialog.basisComboBox.findText("Unknown"))
 
             self.launch_search_and_wait(len(existing_layers))

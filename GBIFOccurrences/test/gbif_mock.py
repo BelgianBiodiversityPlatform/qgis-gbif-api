@@ -35,6 +35,8 @@ def gbif_v1_response(url, request):
         content = _sample_data('all_t_fluviatilis.json')
     elif filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'basisOfRecord': ['UNKNOWN']}):
         content = _sample_data('t_fluviatilis_basis_unknown.json')
+    elif filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'country': ['MY']}):
+        content = _sample_data('t_fluviatilis_malaysia.json')
     elif filters_match_exactly(request, {'scientificName': ['canis lupus'], 'country': ['DE'], 'hasCoordinate': ['true']}):
         content = _sample_data('c_lupus_de.json')
     elif filters_match_exactly(request, {'scientificName': ['inexisting'], 'hasCoordinate': ['true']}):

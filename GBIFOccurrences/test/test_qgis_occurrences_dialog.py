@@ -171,6 +171,17 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
             self.assertEqual(new_layer.featureCount(), 5)
 
+    def test_catalognumber_filter(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.catalogNumberField.setText("1234567")
+            
+            self.launch_search_and_wait(len(existing_layers))
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            self.assertEqual(new_layer.featureCount(), 13)
 
     def test_layer_name(self):
         with HTTMock(gbif_v1_response):

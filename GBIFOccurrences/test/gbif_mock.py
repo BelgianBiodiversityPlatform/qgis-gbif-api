@@ -41,5 +41,7 @@ def gbif_v1_response(url, request):
         content = _sample_data('c_lupus_de.json')
     elif filters_match_exactly(request, {'scientificName': ['inexisting'], 'hasCoordinate': ['true']}):
         content = _sample_data('no_results.json')
+    elif filters_match_exactly(request, {'catalogNumber': ['1234567'], 'hasCoordinate': ['true']}):
+        content = _sample_data('catalog_number.json')
 
     return response(200, content, headers)

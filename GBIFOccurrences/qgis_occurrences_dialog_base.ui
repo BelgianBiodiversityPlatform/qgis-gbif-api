@@ -7,40 +7,17 @@
     <x>0</x>
     <y>0</y>
     <width>544</width>
-    <height>270</height>
+    <height>315</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>GBIF Occurrences</string>
   </property>
-  <widget class="QLineEdit" name="scientificNameField">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>60</y>
-     <width>211</width>
-     <height>21</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>60</y>
-     <width>111</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Scientific name:</string>
-   </property>
-  </widget>
   <widget class="QProgressBar" name="progressBar">
    <property name="geometry">
     <rect>
      <x>160</x>
-     <y>230</y>
+     <y>270</y>
      <width>361</width>
      <height>31</height>
     </rect>
@@ -53,7 +30,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>220</y>
+     <y>260</y>
      <width>141</width>
      <height>40</height>
     </rect>
@@ -64,6 +41,12 @@
    <property name="shortcut">
     <string>Return</string>
    </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="default">
+    <bool>false</bool>
+   </property>
    <property name="flat">
     <bool>false</bool>
    </property>
@@ -72,7 +55,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>200</y>
+     <y>240</y>
      <width>501</width>
      <height>20</height>
     </rect>
@@ -81,57 +64,11 @@
     <string/>
    </property>
   </widget>
-  <widget class="QComboBox" name="basisComboBox">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>90</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>90</y>
-     <width>111</width>
-     <height>30</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Basis of record:</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>130</y>
-     <width>62</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Country:</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="countryComboBox">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>130</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="Line" name="line">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>170</y>
+     <y>210</y>
      <width>511</width>
      <height>16</height>
     </rect>
@@ -160,6 +97,58 @@
     <string>Filters:</string>
    </property>
   </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>60</y>
+     <width>361</width>
+     <height>120</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Scientific name:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="scientificNameField"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Basis of record:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QComboBox" name="basisComboBox"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Country:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QComboBox" name="countryComboBox"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Catalog Number:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="catalogNumberField"/>
+    </item>
+   </layout>
+  </widget>
   <zorder>progressBar</zorder>
   <zorder>loadButton</zorder>
   <zorder>loadingLabel</zorder>
@@ -171,6 +160,8 @@
   <zorder>countryComboBox</zorder>
   <zorder>line</zorder>
   <zorder>label_4</zorder>
+  <zorder>label_5</zorder>
+  <zorder>catalogNumberField</zorder>
  </widget>
  <resources/>
  <connections/>

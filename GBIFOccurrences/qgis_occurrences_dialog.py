@@ -69,7 +69,7 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
 
         self._populate_bor()
         self._populate_countries()
-        self.to_disable_during_load = (self.loadButton, self.scientificNameField, self.basisComboBox, self.countryComboBox)
+        self.to_disable_during_load = (self.loadButton, self.scientificNameField, self.basisComboBox, self.countryComboBox, self.catalogNumberField)
 
         self.loadButton.clicked.connect(self.load_occurrences)
 
@@ -116,11 +116,10 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         QtGui.QMessageBox.critical(self, "Error", "Cannot connect to GBIF. Please check your Internet connection.")
 
     def _ui_to_filters(self):
-        scientific_name = self.scientificNameField.text()
-        
-        return {'scientificName': scientific_name,
+        return {'scientificName': self.scientificNameField.text(),
                 'basisOfRecord': self.BOR[self.basisComboBox.currentText()],
-                'country': self._get_selected_country_code()}
+                'country': self._get_selected_country_code(),
+                'catalogNumber': self.catalogNumberField.text()}
 
     def load_occurrences(self):
         filters = self._ui_to_filters()

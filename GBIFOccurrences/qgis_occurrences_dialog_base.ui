@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>GBIF Occurrences</string>
   </property>
-  <widget class="QLineEdit" name="scientific_name">
+  <widget class="QLineEdit" name="scientificNameField">
    <property name="geometry">
     <rect>
      <x>220</x>
@@ -164,7 +164,7 @@
   <zorder>loadButton</zorder>
   <zorder>loadingLabel</zorder>
   <zorder>label</zorder>
-  <zorder>scientific_name</zorder>
+  <zorder>scientificNameField</zorder>
   <zorder>label_2</zorder>
   <zorder>basisComboBox</zorder>
   <zorder>label_3</zorder>

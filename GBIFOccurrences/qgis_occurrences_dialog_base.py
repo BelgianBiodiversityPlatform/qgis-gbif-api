@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'qgis_occurrences_dialog_base.ui'
 #
-# Created: Thu Dec  4 11:18:19 2014
-#      by: PyQt4 UI code generator 4.10.4
+# Created: Tue Jan 20 11:31:21 2015
+#      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -27,9 +27,9 @@ class Ui_GBIFOccurrencesDialogBase(object):
     def setupUi(self, GBIFOccurrencesDialogBase):
         GBIFOccurrencesDialogBase.setObjectName(_fromUtf8("GBIFOccurrencesDialogBase"))
         GBIFOccurrencesDialogBase.resize(544, 270)
-        self.scientific_name = QtGui.QLineEdit(GBIFOccurrencesDialogBase)
-        self.scientific_name.setGeometry(QtCore.QRect(220, 60, 211, 21))
-        self.scientific_name.setObjectName(_fromUtf8("scientific_name"))
+        self.scientificNameField = QtGui.QLineEdit(GBIFOccurrencesDialogBase)
+        self.scientificNameField.setGeometry(QtCore.QRect(220, 60, 211, 21))
+        self.scientificNameField.setObjectName(_fromUtf8("scientificNameField"))
         self.label = QtGui.QLabel(GBIFOccurrencesDialogBase)
         self.label.setGeometry(QtCore.QRect(90, 60, 111, 16))
         self.label.setObjectName(_fromUtf8("label"))

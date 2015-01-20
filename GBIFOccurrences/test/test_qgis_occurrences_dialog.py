@@ -57,7 +57,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
-            self.dialog.scientific_name.setText("Tetraodon fluviatilis")
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             
             self.launch_search_and_wait(len(existing_layers))
             # everything went OK, get the new layer
@@ -71,7 +71,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
-            self.dialog.scientific_name.setText("inexisting")
+            self.dialog.scientificNameField.setText("inexisting")
             
             QtCore.QTimer.singleShot(1000, close_all_messagebox)
 
@@ -93,7 +93,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
             # 2 filters: scientific name and basis of record
-            self.dialog.scientific_name.setText("Tetraodon fluviatilis")
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.basisComboBox.setCurrentIndex(self.dialog.basisComboBox.findText("Unknown"))
 
             self.launch_search_and_wait(len(existing_layers))
@@ -103,6 +103,10 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             
             # We should have 4 feature on this layer
             self.assertEqual(new_layer.featureCount(), 4)
+
+    def test_ui_disabled(self):
+        # Ensure UI is disabled during search
+        pass
 
     def test_country_filter(self):
         pass

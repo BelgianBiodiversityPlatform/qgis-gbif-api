@@ -42,10 +42,15 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         """Runs after each test."""
         self.dialog = None
 
-    def launch_search_and_wait(self, waitfor=2):
+    def launch_search_and_wait(self, waitfor=1):
         QtTest.QTest.mouseClick(self.dialog.loadButton, QtCore.Qt.LeftButton)
         # As long as we have a mock object for GBIF webservice, this should be fast
         QtTest.QTest.qWait(waitfor * 1000)
+
+    def perform_noresults_search(self):
+        self.dialog.scientificNameField.setText("inexisting")
+        QtCore.QTimer.singleShot(1000, close_all_messagebox)
+        self.launch_search_and_wait()
 
     def test_basic_tetraodon(self):
         """ Ensure we have a new layer with 51 features when searching for T. fluviatilis."""
@@ -54,12 +59,12 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
-            
-            self.launch_search_and_wait(len(existing_layers))
+
+            self.launch_search_and_wait()
             # everything went OK, get the new layer
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
-            
+
             # We should have 51 feature on this layer
             self.assertEqual(new_layer.featureCount(), 51)
 
@@ -70,19 +75,14 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
-            self.dialog.scientificNameField.setText("inexisting")
-            
-            QtCore.QTimer.singleShot(1000, close_all_messagebox)
-
-            self.launch_search_and_wait(len(existing_layers))
-            # everything went OK, get the new layer
+            self.perform_noresults_search()
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
             # Ensure no new layer created
             self.assertEqual(current_layers, existing_layers)
-            
+
             # TODO: Ensure a message box has been shown!
-            
+
             #from nose.tools import set_trace; set_trace()
             # Ensure the main dialog stays open
             self.assertTrue(self.dialog.isVisible())
@@ -93,14 +93,14 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
-            
+
             QtTest.QTest.keyPress(self.dialog, QtCore.Qt.Key_Enter)
             QtTest.QTest.qWait(1000)
 
             # everything went OK, get the new layer
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
-            
+
             # We should have 51 feature on this layer
             self.assertEqual(new_layer.featureCount(), 51)
 
@@ -112,11 +112,11 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.basisComboBox.setCurrentIndex(self.dialog.basisComboBox.findText("Unknown"))
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             # everything went OK, get the new layer
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
-            
+
             # We should have 4 feature on this layer
             self.assertEqual(new_layer.featureCount(), 4)
 
@@ -140,7 +140,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             # everything went OK, get the new layer
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
@@ -159,11 +159,86 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.countryComboBox.setCurrentIndex(self.dialog.countryComboBox.findText("Malaysia"))
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
             self.assertEqual(new_layer.featureCount(), 5)
+
+    def test_year_simple_filter(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
+            self.dialog.minYearEdit.setText("1985")
+
+            self.launch_search_and_wait()
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            self.assertEqual(new_layer.featureCount(), 5)
+
+    def test_year_range_filter(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
+            self.dialog.yearRangeBox.setChecked(True)
+            self.dialog.minYearEdit.setText("1970")
+            self.dialog.maxYearEdit.setText("1985")
+
+            self.launch_search_and_wait()
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            self.assertEqual(new_layer.featureCount(), 7)
+
+    def test_year_ui_basic_interactions(self):
+        # Initially, checkox is unchecked and only the first field is available
+        self.assertFalse(self.dialog.yearRangeBox.isChecked())
+        self.assertTrue(self.dialog.minYearEdit.isEnabled())
+        self.assertFalse(self.dialog.maxYearEdit.isEnabled())
+
+        # Then we check the "range" box, and both fields are available
+        QtTest.QTest.mouseClick(self.dialog.yearRangeBox, QtCore.Qt.LeftButton)
+        self.assertTrue(self.dialog.yearRangeBox.isChecked())
+        self.assertTrue(self.dialog.minYearEdit.isEnabled())
+        self.assertTrue(self.dialog.maxYearEdit.isEnabled())
+
+        # If we uncheck again, bat to inital status
+        QtTest.QTest.mouseClick(self.dialog.yearRangeBox, QtCore.Qt.LeftButton)
+        self.assertFalse(self.dialog.yearRangeBox.isChecked())
+        self.assertTrue(self.dialog.minYearEdit.isEnabled())
+        self.assertFalse(self.dialog.maxYearEdit.isEnabled())
+
+    # Ensure that the range UI logic is not affected by searches (who disable fields)
+    def test_year_ui_search(self):
+        # Initially, checkox is unchecked and only the first field is available
+        self.assertFalse(self.dialog.yearRangeBox.isChecked())
+        self.assertTrue(self.dialog.minYearEdit.isEnabled())
+        self.assertFalse(self.dialog.maxYearEdit.isEnabled())
+
+        self.perform_noresults_search()
+        # Ensure there's been no change
+
+        self.assertFalse(self.dialog.yearRangeBox.isChecked())
+        self.assertTrue(self.dialog.minYearEdit.isEnabled())
+        self.assertFalse(self.dialog.maxYearEdit.isEnabled())
+
+        # Now we check the box
+        QtTest.QTest.mouseClick(self.dialog.yearRangeBox, QtCore.Qt.LeftButton)
+        # Ensure click has been taken
+        self.assertTrue(self.dialog.yearRangeBox.isChecked())
+        self.assertTrue(self.dialog.minYearEdit.isEnabled())
+        self.assertTrue(self.dialog.maxYearEdit.isEnabled())
+
+        # Launch another search
+        self.perform_noresults_search()
+
+        # Ensure there's been no change
+        self.assertTrue(self.dialog.yearRangeBox.isChecked())
+        self.assertTrue(self.dialog.minYearEdit.isEnabled())
+        self.assertTrue(self.dialog.maxYearEdit.isEnabled())
 
     def test_publishing_country_filter(self):
         with HTTMock(gbif_v1_response):
@@ -172,7 +247,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.publishingCountryComboBox.setCurrentIndex(self.dialog.publishingCountryComboBox.findText("France"))
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
@@ -184,7 +259,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
             self.dialog.catalogNumberField.setText("1234567")
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
@@ -197,7 +272,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.institutionCodeField.setText("CAS")
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
@@ -210,7 +285,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.collectionCodeField.setText("NRM-Fish")
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
@@ -222,7 +297,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
@@ -244,7 +319,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.dialog.scientificNameField.setText("canis lupus")
             self.dialog.countryComboBox.setCurrentIndex(self.dialog.countryComboBox.findText("Germany"))
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
@@ -266,7 +341,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.basisComboBox.setCurrentIndex(self.dialog.basisComboBox.findText("Unknown"))
 
-            self.launch_search_and_wait(len(existing_layers))
+            self.launch_search_and_wait()
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 

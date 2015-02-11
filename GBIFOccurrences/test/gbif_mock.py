@@ -33,6 +33,10 @@ def gbif_v1_response(url, request):
 
     if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true']}):
         content = _sample_data('all_t_fluviatilis.json')
+    if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'year': ['1970,1985']}):
+        content = _sample_data('t_fluviatilis_70_85.json')
+    if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'year': ['1985']}):
+        content = _sample_data('t_fluviatilis_85.json')
     if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'publishingCountry': ['FR']}):
         content = _sample_data('t_fluviatilis_pub_fr.json')
     if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'institutionCode': ['CAS']}):

@@ -47,6 +47,13 @@ def _get_selected_country_code(combobox):
     return None
 
 
+def _get_val_or_range(checkbox, min_field, max_field):
+    if checkbox.isChecked():
+        return "{min},{max}".format(min=min_field.text(), max=max_field.text())
+    else:
+        return min_field.text()
+
+
 class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
     # Key: UI label
     # Value: GBIF filter constants, see
@@ -80,9 +87,11 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         self.to_disable_during_load = (self.loadButton, self.scientificNameField,
                                        self.basisComboBox, self.countryComboBox,
                                        self.catalogNumberField, self.publishingCountryComboBox,
-                                       self.institutionCodeField, self.collectionCodeField)
+                                       self.institutionCodeField, self.collectionCodeField,
+                                       self.yearRangeBox, self.maxYearEdit, self.minYearEdit)
 
         self.loadButton.clicked.connect(self.load_occurrences)
+        self.yearRangeBox.clicked.connect(self.year_range_ui)
 
     def _populate_countries(self):
         _populate_country_field(self.countryComboBox)
@@ -108,6 +117,8 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
     def after_search_ui(self):
         self._enable_controls()
 
+        self.year_range_ui()  # We may have messed up with enabled status of year fields...
+
         # Theose have been affected during search
         self.progressBar.setValue(0)
         self.loadingLabel.setText("")
@@ -129,7 +140,14 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
                 'catalogNumber': self.catalogNumberField.text(),
                 'publishingCountry': _get_selected_country_code(self.publishingCountryComboBox),
                 'institutionCode': self.institutionCodeField.text(),
-                'collectionCode': self.collectionCodeField.text()}
+                'collectionCode': self.collectionCodeField.text(),
+                'year': _get_val_or_range(self.yearRangeBox, self.minYearEdit, self.maxYearEdit)}
+
+    def year_range_ui(self):
+        if self.yearRangeBox.isChecked():
+            self.maxYearEdit.setDisabled(False)
+        else:
+            self.maxYearEdit.setDisabled(True)
 
     def load_occurrences(self):
         filters = self._ui_to_filters()

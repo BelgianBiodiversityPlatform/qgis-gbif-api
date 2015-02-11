@@ -138,14 +138,13 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
     # TODO: test list of dicts are supported and serialized as JSON
     # TODO: test unicode is supported in attributes (string and list/dicts)
 
-
     def test_layer_properties(self):
         """Ensure a few general properties are correct on the new layer."""
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
-            
+
             self.launch_search_and_wait(len(existing_layers))
             # everything went OK, get the new layer
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
@@ -154,7 +153,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             # Ensure the created layer use EPSG:4326.
             self.assertEqual(new_layer.crs().authid(), 'EPSG:4326')
             self.assertTrue(new_layer.hasGeometryType())
-            
+
             # Strangely, this doesn't work because it is QGis.WKBUnknown... strange.
             #self.assertEqual(new_layer.geometryType(), QGis.WKBPoint)
 
@@ -164,7 +163,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.countryComboBox.setCurrentIndex(self.dialog.countryComboBox.findText("Malaysia"))
-            
+
             self.launch_search_and_wait(len(existing_layers))
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
@@ -177,7 +176,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
             self.dialog.publishingCountryComboBox.setCurrentIndex(self.dialog.publishingCountryComboBox.findText("France"))
-            
+
             self.launch_search_and_wait(len(existing_layers))
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
@@ -189,26 +188,51 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
             self.dialog.catalogNumberField.setText("1234567")
-            
+
             self.launch_search_and_wait(len(existing_layers))
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
             self.assertEqual(new_layer.featureCount(), 13)
 
+    def test_institutioncode_filter(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
+            self.dialog.institutionCodeField.setText("CAS")
+
+            self.launch_search_and_wait(len(existing_layers))
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            self.assertEqual(new_layer.featureCount(), 12)
+
+    def test_collectioncode_filter(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
+            self.dialog.collectionCodeField.setText("NRM-Fish")
+
+            self.launch_search_and_wait(len(existing_layers))
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            self.assertEqual(new_layer.featureCount(), 5)
+
     def test_layer_name(self):
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
-            
+
             self.launch_search_and_wait(len(existing_layers))
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
             # Currently, the layer name is the scientific name field
             self.assertEqual(new_layer.name(), "Tetraodon fluviatilis")
-
 
     def test_always_have_coordinates(self):
         """Ensure we only ask GBIF records with coordinates."""
@@ -233,7 +257,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             all_features = new_layer.selectedFeatures()
 
             record_id_920936125 = next(f for f in all_features if f.attribute('gbifID') == "920936125")
-            
+
             # Here, we ensure it looks like JSON
             expected_media = '[{"references": "http://www.enjoynature.net/?bild=-1579880650", "format": "text/html"}]'
             self.assertEqual(expected_media, record_id_920936125.attribute('media'))
@@ -250,7 +274,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.launch_search_and_wait(len(existing_layers))
             current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
-        
+
             # 1. Ensure the righ attributes are the layer
             expected_attributes = ('protocol', 'taxonKey', 'family', 'institutionCode',
                                    'lastInterpreted', 'speciesKey', 'gbifID', 'genericName',
@@ -294,7 +318,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.assertNotIn("COORDINATE_ROUNDED", record_id_90129834.attribute('issues'))
             self.assertIn("GEODETIC_DATUM_ASSUMED_WGS84", record_id_90129834.attribute('issues'))
             self.assertIn("COUNTRY_DERIVED_FROM_COORDINATES", record_id_90129834.attribute('issues'))
-            
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(GBIFOccurrencesDialogTest)

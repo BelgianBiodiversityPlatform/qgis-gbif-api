@@ -39,10 +39,12 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 COMBOBOX_ALL_LABEL = "-- All --"
 
+
 def _populate_country_field(combobox):
     combobox.addItem(COMBOBOX_ALL_LABEL)
     for c in countries:
         combobox.addItem(c.name)
+
 
 def _get_selected_country_code(combobox):
     for c in countries:
@@ -82,11 +84,12 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         self._populate_bor()
         self._populate_countries()
         self._populate_publishing_countries()
-        self.to_disable_during_load = (self.loadButton, self.scientificNameField, self.basisComboBox, self.countryComboBox, self.catalogNumberField)
+        self.to_disable_during_load = (self.loadButton, self.scientificNameField,
+                                       self.basisComboBox, self.countryComboBox,
+                                       self.catalogNumberField, self.publishingCountryComboBox,
+                                       self.institutionCodeField, self.collectionCodeField)
 
         self.loadButton.clicked.connect(self.load_occurrences)
-
-    
 
     def _populate_countries(self):
         _populate_country_field(self.countryComboBox)
@@ -117,19 +120,23 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         self.loadingLabel.setText("")
 
     def show_progress(self, already_loaded_records, total_records):
-        self.loadingLabel.setText("Adding " + str(already_loaded_records) + "/" + str(total_records))
+        self.loadingLabel.setText("Adding " + str(already_loaded_records) +
+                                  "/" + str(total_records))
         percent = ((already_loaded_records / float(total_records)) * 100)
         self.progressBar.setValue(percent)
 
     def connection_error_message(self):
-        QtGui.QMessageBox.critical(self, "Error", "Cannot connect to GBIF. Please check your Internet connection.")
+        msg = "Cannot connect to GBIF. Please check your Internet connection."
+        QtGui.QMessageBox.critical(self, "Error", msg)
 
     def _ui_to_filters(self):
         return {'scientificName': self.scientificNameField.text(),
                 'basisOfRecord': self.BOR[self.basisComboBox.currentText()],
                 'country': _get_selected_country_code(self.countryComboBox),
                 'catalogNumber': self.catalogNumberField.text(),
-                'publishingCountry': _get_selected_country_code(self.publishingCountryComboBox)}
+                'publishingCountry': _get_selected_country_code(self.publishingCountryComboBox),
+                'institutionCode': self.institutionCodeField.text(),
+                'collectionCode': self.collectionCodeField.text()}
 
     def load_occurrences(self):
         filters = self._ui_to_filters()
@@ -144,13 +151,15 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
                 layer = create_and_add_layer(filters['scientificName'])
 
                 already_loaded_records = 0
-                
+
                 for occ in get_occurrences_in_baches(filters):
                     already_loaded_records += len(occ)
                     self.show_progress(already_loaded_records, count)
                     add_gbif_occ_to_layer(occ, layer)
-                    Qt.QApplication.processEvents()  # We need this to make UI responsive (progress bar advance, ...)
-                
+
+                    # We need this to make UI responsive (progress bar advance, ...)
+                    Qt.QApplication.processEvents()
+
                 self.after_search_ui()
 
                 self.close()

@@ -16,7 +16,7 @@ def parameters_match_exactly(request, p):
     parsed = urlparse.urlparse(request.url)
     parsed2 = urlparse.parse_qs(parsed.query)
 
-    #from nose.tools import set_trace; set_trace()
+    # from nose.tools import set_trace; set_trace()
     return p == parsed2
 
 
@@ -35,6 +35,10 @@ def gbif_v1_response(url, request):
         content = _sample_data('all_t_fluviatilis.json')
     if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'publishingCountry': ['FR']}):
         content = _sample_data('t_fluviatilis_pub_fr.json')
+    if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'institutionCode': ['CAS']}):
+        content = _sample_data('t_fluviatilis_institution_cas.json')
+    if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'collectionCode': ['NRM-Fish']}):
+        content = _sample_data('t_fluviatilis_collection_nrm.json')
     elif filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'basisOfRecord': ['UNKNOWN']}):
         content = _sample_data('t_fluviatilis_basis_unknown.json')
     elif filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'country': ['MY']}):

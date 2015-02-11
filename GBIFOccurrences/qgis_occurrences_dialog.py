@@ -39,6 +39,18 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 COMBOBOX_ALL_LABEL = "-- All --"
 
+def _populate_country_field(combobox):
+    combobox.addItem(COMBOBOX_ALL_LABEL)
+    for c in countries:
+        combobox.addItem(c.name)
+
+def _get_selected_country_code(combobox):
+    for c in countries:
+            if combobox.currentText() == c.name:
+                return c.alpha2
+    # Not found
+    return None
+
 
 class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
     # Key: UI label
@@ -69,21 +81,18 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
 
         self._populate_bor()
         self._populate_countries()
+        self._populate_publishing_countries()
         self.to_disable_during_load = (self.loadButton, self.scientificNameField, self.basisComboBox, self.countryComboBox, self.catalogNumberField)
 
         self.loadButton.clicked.connect(self.load_occurrences)
 
-    def _populate_countries(self):
-        self.countryComboBox.addItem(COMBOBOX_ALL_LABEL)
-        for c in countries:
-            self.countryComboBox.addItem(c.name)
+    
 
-    def _get_selected_country_code(self):
-        for c in countries:
-            if self.countryComboBox.currentText() == c.name:
-                return c.alpha2
-        # Not found
-        return None
+    def _populate_countries(self):
+        _populate_country_field(self.countryComboBox)
+
+    def _populate_publishing_countries(self):
+        _populate_country_field(self.publishingCountryComboBox)
 
     def _populate_bor(self):
         vals = self.BOR.keys()
@@ -118,8 +127,9 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
     def _ui_to_filters(self):
         return {'scientificName': self.scientificNameField.text(),
                 'basisOfRecord': self.BOR[self.basisComboBox.currentText()],
-                'country': self._get_selected_country_code(),
-                'catalogNumber': self.catalogNumberField.text()}
+                'country': _get_selected_country_code(self.countryComboBox),
+                'catalogNumber': self.catalogNumberField.text(),
+                'publishingCountry': _get_selected_country_code(self.publishingCountryComboBox)}
 
     def load_occurrences(self):
         filters = self._ui_to_filters()

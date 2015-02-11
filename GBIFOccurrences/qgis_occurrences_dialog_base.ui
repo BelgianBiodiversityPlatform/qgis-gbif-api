@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>544</width>
-    <height>315</height>
+    <height>369</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QProgressBar" name="progressBar">
    <property name="geometry">
     <rect>
-     <x>160</x>
-     <y>270</y>
+     <x>170</x>
+     <y>330</y>
      <width>361</width>
      <height>31</height>
     </rect>
@@ -29,8 +29,8 @@
   <widget class="QPushButton" name="loadButton">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>260</y>
+     <x>20</x>
+     <y>320</y>
      <width>141</width>
      <height>40</height>
     </rect>
@@ -54,8 +54,8 @@
   <widget class="QLabel" name="loadingLabel">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>240</y>
+     <x>30</x>
+     <y>300</y>
      <width>501</width>
      <height>20</height>
     </rect>
@@ -67,8 +67,8 @@
   <widget class="Line" name="line">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>210</y>
+     <x>20</x>
+     <y>270</y>
      <width>511</width>
      <height>16</height>
     </rect>
@@ -97,13 +97,13 @@
     <string>Filters:</string>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>90</x>
      <y>60</y>
      <width>361</width>
-     <height>120</height>
+     <height>151</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -137,31 +137,34 @@
     <item row="2" column="1">
      <widget class="QComboBox" name="countryComboBox"/>
     </item>
-    <item row="3" column="0">
+    <item row="4" column="0">
      <widget class="QLabel" name="label_5">
       <property name="text">
        <string>Catalog Number:</string>
       </property>
      </widget>
     </item>
-    <item row="3" column="1">
+    <item row="4" column="1">
      <widget class="QLineEdit" name="catalogNumberField"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Publishing Country:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QComboBox" name="publishingCountryComboBox"/>
     </item>
    </layout>
   </widget>
+  <zorder>layoutWidget</zorder>
   <zorder>progressBar</zorder>
   <zorder>loadButton</zorder>
   <zorder>loadingLabel</zorder>
-  <zorder>label</zorder>
-  <zorder>scientificNameField</zorder>
-  <zorder>label_2</zorder>
-  <zorder>basisComboBox</zorder>
-  <zorder>label_3</zorder>
-  <zorder>countryComboBox</zorder>
   <zorder>line</zorder>
   <zorder>label_4</zorder>
-  <zorder>label_5</zorder>
-  <zorder>catalogNumberField</zorder>
  </widget>
  <resources/>
  <connections/>

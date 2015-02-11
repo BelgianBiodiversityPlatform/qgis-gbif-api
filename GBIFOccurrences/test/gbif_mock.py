@@ -30,9 +30,11 @@ def filters_match_exactly(request, f):
 @all_requests
 def gbif_v1_response(url, request):
     headers = {'content-type': 'application/json'}
-    
+
     if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true']}):
         content = _sample_data('all_t_fluviatilis.json')
+    if filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'publishingCountry': ['FR']}):
+        content = _sample_data('t_fluviatilis_pub_fr.json')
     elif filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'basisOfRecord': ['UNKNOWN']}):
         content = _sample_data('t_fluviatilis_basis_unknown.json')
     elif filters_match_exactly(request, {'scientificName': ['Tetraodon fluviatilis'], 'hasCoordinate': ['true'], 'country': ['MY']}):

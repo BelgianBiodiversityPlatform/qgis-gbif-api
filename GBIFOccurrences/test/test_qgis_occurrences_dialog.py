@@ -120,6 +120,34 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             # We should have 4 feature on this layer
             self.assertEqual(new_layer.featureCount(), 4)
 
+    def test_taxonkey_filter(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            # 2 filters: scientific name and basis of record
+            self.dialog.taxonKeyField.setText("2403147")
+
+            self.launch_search_and_wait()
+            # everything went OK, get the new layer
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            self.assertEqual(new_layer.featureCount(), 18)
+
+    def test_datasetkey_filter(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            # 2 filters: scientific name and basis of record
+            self.dialog.datasetKeyField.setText("05ebc824-3a3b-4f64-ab22-99b0e2c3aa48")
+
+            self.launch_search_and_wait()
+            # everything went OK, get the new layer
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            self.assertEqual(new_layer.featureCount(), 8)
+
     def test_ui_during_after_load(self):
         """Ensure the UI is disabled during load, and re-enabled later."""
         with HTTMock(gbif_v1_response):

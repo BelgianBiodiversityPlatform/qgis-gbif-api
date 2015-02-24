@@ -88,7 +88,8 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
                                        self.basisComboBox, self.countryComboBox,
                                        self.catalogNumberField, self.publishingCountryComboBox,
                                        self.institutionCodeField, self.collectionCodeField,
-                                       self.yearRangeBox, self.maxYearEdit, self.minYearEdit)
+                                       self.yearRangeBox, self.maxYearEdit, self.minYearEdit,
+                                       self.taxonKeyField, self.datasetKeyField)
 
         self.loadButton.clicked.connect(self.load_occurrences)
         self.yearRangeBox.clicked.connect(self.year_range_ui)
@@ -141,7 +142,9 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
                 'publishingCountry': _get_selected_country_code(self.publishingCountryComboBox),
                 'institutionCode': self.institutionCodeField.text(),
                 'collectionCode': self.collectionCodeField.text(),
-                'year': _get_val_or_range(self.yearRangeBox, self.minYearEdit, self.maxYearEdit)}
+                'year': _get_val_or_range(self.yearRangeBox, self.minYearEdit, self.maxYearEdit),
+                'taxonKey': self.taxonKeyField.text(),
+                'datasetKey': self.datasetKeyField.text()}
 
     def year_range_ui(self):
         if self.yearRangeBox.isChecked():

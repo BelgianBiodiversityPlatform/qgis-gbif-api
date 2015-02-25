@@ -57,5 +57,7 @@ def gbif_v1_response(url, request):
         content = _sample_data('taxon_2403147.json')
     elif filters_match_exactly(request, {'datasetKey': ['05ebc824-3a3b-4f64-ab22-99b0e2c3aa48'], 'hasCoordinate': ['true']}):
         content = _sample_data('dataset_05eb.json')
+    elif filters_match_exactly(request, {'scientificName': ['Lachnum'], 'hasCoordinate': ['true'], 'recordedBy': ['Steve Kerr']}):
+        content = _sample_data('lachnum_kerr.json')
 
     return response(200, content, headers)

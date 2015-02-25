@@ -120,6 +120,22 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             # We should have 4 feature on this layer
             self.assertEqual(new_layer.featureCount(), 4)
 
+    def test_sn_recordedby_filter(self):
+        with HTTMock(gbif_v1_response):
+            existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+
+            # 2 filters: scientific name and basis of record
+            self.dialog.scientificNameField.setText("Lachnum")
+            self.dialog.recordedByField.setText("Steve Kerr")
+
+            self.launch_search_and_wait()
+            # everything went OK, get the new layer
+            current_layers = QgsMapLayerRegistry().instance().mapLayers().values()
+            new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
+
+            # We should have 4 feature on this layer
+            self.assertEqual(new_layer.featureCount(), 1)
+
     def test_taxonkey_filter(self):
         with HTTMock(gbif_v1_response):
             existing_layers = QgsMapLayerRegistry().instance().mapLayers().values()

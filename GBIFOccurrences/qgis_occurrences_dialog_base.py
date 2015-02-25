@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qgis_occurrences_dialog_base.ui'
 #
-# Created: Tue Feb 24 15:07:34 2015
+# Created: Wed Feb 25 15:07:32 2015
 #      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -55,7 +55,7 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.label_4.setFont(font)
         self.label_4.setObjectName(_fromUtf8("label_4"))
         self.layoutWidget = QtGui.QWidget(GBIFOccurrencesDialogBase)
-        self.layoutWidget.setGeometry(QtCore.QRect(90, 60, 371, 335))
+        self.layoutWidget.setGeometry(QtCore.QRect(90, 60, 371, 366))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.layoutWidget)
         self.gridLayout.setMargin(0)
@@ -128,6 +128,9 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.maxYearEdit.setObjectName(_fromUtf8("maxYearEdit"))
         self.gridLayout_2.addWidget(self.maxYearEdit, 1, 1, 1, 1)
         self.gridLayout.addLayout(self.gridLayout_2, 7, 1, 1, 1)
+        self.datasetKeyField = QtGui.QLineEdit(self.layoutWidget)
+        self.datasetKeyField.setObjectName(_fromUtf8("datasetKeyField"))
+        self.gridLayout.addWidget(self.datasetKeyField, 9, 1, 1, 1)
         self.label_10 = QtGui.QLabel(self.layoutWidget)
         self.label_10.setObjectName(_fromUtf8("label_10"))
         self.gridLayout.addWidget(self.label_10, 8, 0, 1, 1)
@@ -137,9 +140,12 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.label_11 = QtGui.QLabel(self.layoutWidget)
         self.label_11.setObjectName(_fromUtf8("label_11"))
         self.gridLayout.addWidget(self.label_11, 9, 0, 1, 1)
-        self.datasetKeyField = QtGui.QLineEdit(self.layoutWidget)
-        self.datasetKeyField.setObjectName(_fromUtf8("datasetKeyField"))
-        self.gridLayout.addWidget(self.datasetKeyField, 9, 1, 1, 1)
+        self.label_12 = QtGui.QLabel(self.layoutWidget)
+        self.label_12.setObjectName(_fromUtf8("label_12"))
+        self.gridLayout.addWidget(self.label_12, 10, 0, 1, 1)
+        self.recordedByField = QtGui.QLineEdit(self.layoutWidget)
+        self.recordedByField.setObjectName(_fromUtf8("recordedByField"))
+        self.gridLayout.addWidget(self.recordedByField, 10, 1, 1, 1)
 
         self.retranslateUi(GBIFOccurrencesDialogBase)
         QtCore.QMetaObject.connectSlotsByName(GBIFOccurrencesDialogBase)
@@ -160,4 +166,5 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.yearRangeBox.setText(_translate("GBIFOccurrencesDialogBase", "Use a year range", None))
         self.label_10.setText(_translate("GBIFOccurrencesDialogBase", "Taxon key:", None))
         self.label_11.setText(_translate("GBIFOccurrencesDialogBase", "Dataset key:", None))
+        self.label_12.setText(_translate("GBIFOccurrencesDialogBase", "Recorded by:", None))
 

@@ -19,7 +19,8 @@ import sys
 from PyQt4 import QtGui, uic, Qt
 
 from helpers import create_and_add_layer, add_gbif_occ_to_layer
-from gbif_webservices import get_occurrences_in_baches, count_occurrences, ConnectionIssue
+from gbif_webservices import (get_occurrences_in_baches, count_occurrences, ConnectionIssue,
+                              MAX_TOTAL_RECORDS_GBIF)
 
 parent_dir = os.path.abspath(os.path.dirname(__file__))
 vendor_dir = os.path.join(parent_dir, 'vendor')
@@ -112,6 +113,12 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         for widget in self.to_disable_during_load:
             widget.setDisabled(False)
 
+    def dialog_too_many_results(self):
+        msg = """The query returned more than {max} records.\
+Due to limitations in the GBIF infrastructure, very large queries are currently not \
+supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
+        QtGui.QMessageBox.information(self, "Error", msg)
+
     def before_search_ui(self):
         self._disable_controls()
 
@@ -161,7 +168,9 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         except ConnectionIssue:
             self.connection_error_message()
         else:
-            if count > 0:  # We have results
+            if count > MAX_TOTAL_RECORDS_GBIF:
+                self.dialog_too_many_results()
+            elif count > 0:  # We have results
                 self.before_search_ui()
                 layer = create_and_add_layer(filters['scientificName'])
 

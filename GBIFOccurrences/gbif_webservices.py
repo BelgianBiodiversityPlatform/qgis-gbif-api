@@ -11,6 +11,7 @@ import requests
 ENDPOINT = 'http://api.gbif.org/v1/'
 OCCURRENCES_SEARCH_URL = urljoin(ENDPOINT, "occurrence/search")
 RECORDS_PER_PAGE = 300  # Maximum currently supported by API
+MAX_TOTAL_RECORDS_GBIF = 200000
 
 
 class ConnectionIssue(Exception):
@@ -62,7 +63,7 @@ def get_occurrences_in_baches(filters):
             current_count = total_count
         else:
             current_count = current_count + RECORDS_PER_PAGE
-        
+
         yield (resp['results'])
 
         offset = offset + RECORDS_PER_PAGE

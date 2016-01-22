@@ -140,7 +140,7 @@ class GBIFOccurrences:
             self.toolbar.addAction(action)
 
         if add_to_menu:
-            self.iface.addPluginToMenu(
+            self.iface.addPluginToVectorMenu(
                 self.menu,
                 action)
 
@@ -154,7 +154,7 @@ class GBIFOccurrences:
         icon_path = ':/plugins/GBIFOccurrences/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Retrieve GBIF occurrences'),
+            text=self.tr(u'Load GBIF occurrences'),
             callback=self.run,
             parent=self.iface.mainWindow())
 

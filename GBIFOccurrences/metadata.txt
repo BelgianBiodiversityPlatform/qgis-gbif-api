@@ -26,7 +26,7 @@ tags=gbif biodiversity data webservices science occurrence
 
 homepage=
 tracker=
-repository=
+repository=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api
 icon=icon.png
 # experimental flag
 experimental=True

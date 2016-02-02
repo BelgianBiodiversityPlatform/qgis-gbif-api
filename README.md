@@ -18,6 +18,8 @@ Use
 
 1. Open the extension window from the main menu: Vector -> GBIF Occurrences -> Load GBIF Occurrences (alternatively, use the icon in the toolbar).
 
+![Main plugin window](./screenshot1.png)
+
 2. Fill in the details about yout search (for example: *betta splendens* occurring in Thailand) and click "Load occurrences".
 
 3. Done! You'll notice a new QGIS layer for your occurrences. All details known by GBIF are also available as attributes.

@@ -2,3 +2,4 @@
 .coverage
 .noseids
 /i18n/af.qm
+.DS_Store

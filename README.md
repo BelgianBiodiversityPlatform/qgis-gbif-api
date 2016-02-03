@@ -16,7 +16,7 @@ At this stage, install plugin manually within QGIS data directory then enable it
 Use
 ---
 
-1. Open the extension window from the main menu: Vector -> GBIF Occurrences -> Load GBIF Occurrences (alternatively, use the icon in the toolbar).
+1. Open the extension window from the main menu: Vector -> GBIF Occurrences -> Load GBIF Occurrences (alternatively, use the ![Plugin icon](./GBIFOccurrences/icon.png)icon in the toolbar).
 
 2. Fill in the details about yout search (for example: *betta splendens* occurring in Thailand) and click "Load occurrences".
 

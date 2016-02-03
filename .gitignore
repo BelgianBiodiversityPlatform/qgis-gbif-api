@@ -1,4 +1,4 @@
 *.pyc
 .coverage
 .noseids
-/GBIFOccurrences/i18n/af.qm
+/i18n/af.qm

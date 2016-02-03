@@ -1,5 +1,3 @@
-The plugin is out of the QGIS plugins repository for a short amount of time! Sorry for the inconvenience!
-=========================================================================================================
 
 What is it?
 ===========
@@ -11,6 +9,8 @@ Tutorial
 
 Installation
 ------------
+
+**Note: the plugin has been re-submitted to the QGIS plugins repository. If you used a previous version, you will need to uninstall it and reinstall it completely (update won't work).**
 
 1. Launch QGIS
 2. In the main menu, go to `Plugins` -> `Manage and install plugins...`

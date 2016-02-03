@@ -161,7 +161,7 @@ class GBIFOccurrences:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
-            self.iface.removePluginMenu(
+            self.iface.removePluginVectorMenu(
                 self.tr(u'&GBIF Occurrences'),
                 action)
             self.iface.removeToolBarIcon(action)

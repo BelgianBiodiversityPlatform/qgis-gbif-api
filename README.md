@@ -1,3 +1,6 @@
+The plugin is out of the QGIS plugins repository for a short amount of time! Sorry for the inconvenience!
+=========================================================================================================
+
 What is it?
 ===========
 

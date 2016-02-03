@@ -56,7 +56,7 @@ How-to release:
 ===============
 
 - Bump version number and update changelog in metadata.txt.
-- Submit the plugin to the QGIS plugins repository **making sure that there's no dash in the directory name** (it should be a proper Python package).
+- Submit the plugin to the QGIS plugins repository, after renaming the directory to `qgisgbifapi`.
 - create a git tag and push it to github:
 
     $ git tag v0.1-in-plugin-repo

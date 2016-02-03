@@ -1,7 +1,7 @@
 What is it?
 ===========
 
-A [QGIS](http://www.qgis.org/) plugin to directly download import [GBIF](http://www.gbif.org) occurrence data from the application interface.
+A [QGIS](http://www.qgis.org/) plugin to directly download and import [GBIF](http://www.gbif.org) occurrence data from the application interface.
 
 Tutorial
 ========

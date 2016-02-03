@@ -13,6 +13,7 @@ description=Retrieve data from GBIF webservices (occurences API) directly within
 version=0.1
 author=Nicolas Noé - Belgian Biodiversity Platform
 email=n.noe@biodiversity.be
+about=GBIF Occurrences is a QGIS plugin to directly download and import GBIF occurrence data from the application interface.
 
 # End of mandatory metadata
 

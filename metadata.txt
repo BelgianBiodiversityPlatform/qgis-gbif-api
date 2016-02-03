@@ -25,8 +25,7 @@ about=GBIF Occurrences is a QGIS plugin to directly download and import GBIF occ
 # Tags are comma separated with spaces allowed
 tags=gbif biodiversity data webservices science occurrence
 
-homepage=
-tracker=
+tracker=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api/issues
 repository=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api
 icon=icon.png
 # experimental flag

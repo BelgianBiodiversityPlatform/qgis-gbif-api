@@ -43,8 +43,18 @@ Status
 First release ok! Feel free to report any bug or feature requests (or even better, contribute to improve it!)
 
 Running tests:
---------------
+==============
 
 $ make test
 
 (Currently it is difficult to run tests on Mac OS X since Kyngchaos QGIS packages embed PyQt without the QtTest module.)
+
+How-to release:
+===============
+
+- Bump version number and update changelog in metadata.txt.
+- Submit the plugin to the QGIS plugins repository **making sure that there's no dash in the directory name** (it should be a proper Python package).
+- create a git tag and push it to github:
+
+    $ git tag v0.1-in-plugin-repo
+    $ git push origin --tags

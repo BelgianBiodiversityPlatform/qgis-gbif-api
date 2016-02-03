@@ -9,9 +9,13 @@ Tutorial
 Installation
 ------------
 
-At this stage, install plugin manually within QGIS data directory then enable it in the plugin manager. 
+1. Launch QGIS
+2. In the main menu, go to `Plugins` -> `Manage and install plugins...`
+3. Go to `Settings`and make sure `Show also experimental plugins` is checked
+4. Go back to the `All` tab and search for `GBIF occurrences`
+5. Select the plugin and click on `Install plugin`
 
-**It will be available soon directly from the [QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/), for easier installation.**
+![Plugin install window](./screenshot_install.png)
 
 Use
 ---

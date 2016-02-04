@@ -17,6 +17,8 @@ MAX_TOTAL_RECORDS_GBIF = 200000
 class ConnectionIssue(Exception):
     pass
 
+class GBIFApiError(Exception):
+    pass
 
 def _finalize_filters(filters):
     fixed_filters = {'hasCoordinate': 'true', 'limit': RECORDS_PER_PAGE}
@@ -31,7 +33,10 @@ def count_occurrences(filters):
     except requests.exceptions.ConnectionError:
         raise ConnectionIssue
     else:
-        resp = req.json()
+        try:
+            resp = req.json()
+        except ValueError:  # When GBIF throws an error message, it's plain text (not JSON)
+            raise GBIFApiError(req.text)
 
         try:
             c = resp['count']

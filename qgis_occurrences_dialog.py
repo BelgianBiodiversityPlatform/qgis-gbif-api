@@ -20,7 +20,7 @@ from PyQt4 import QtGui, uic, Qt
 
 from helpers import create_and_add_layer, add_gbif_occ_to_layer
 from gbif_webservices import (get_occurrences_in_baches, count_occurrences, ConnectionIssue,
-                              MAX_TOTAL_RECORDS_GBIF)
+                              GBIFApiError, MAX_TOTAL_RECORDS_GBIF)
 
 parent_dir = os.path.abspath(os.path.dirname(__file__))
 vendor_dir = os.path.join(parent_dir, 'vendor')
@@ -90,7 +90,8 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
                                        self.catalogNumberField, self.publishingCountryComboBox,
                                        self.institutionCodeField, self.collectionCodeField,
                                        self.yearRangeBox, self.maxYearEdit, self.minYearEdit,
-                                       self.taxonKeyField, self.datasetKeyField, self.recordedByField)
+                                       self.taxonKeyField, self.datasetKeyField,
+                                       self.recordedByField)
 
         self.loadButton.clicked.connect(self.load_occurrences)
         self.yearRangeBox.clicked.connect(self.year_range_ui)
@@ -138,7 +139,9 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
         self.progressBar.setValue(percent)
 
     def connection_error_message(self):
-        msg = "Cannot connect to GBIF. Please check your Internet connection."
+        self.error_message("Cannot connect to GBIF. Please check your Internet connection.")
+
+    def error_message(self, msg):
         QtGui.QMessageBox.critical(self, "Error", msg)
 
     def _ui_to_filters(self):
@@ -167,6 +170,8 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
             count = count_occurrences(filters)
         except ConnectionIssue:
             self.connection_error_message()
+        except GBIFApiError as e:
+            self.error_message("GBIF Error: " + str(e))
         else:
             if count > MAX_TOTAL_RECORDS_GBIF:
                 self.dialog_too_many_results()

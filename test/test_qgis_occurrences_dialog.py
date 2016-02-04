@@ -433,7 +433,10 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             self.assertIn("GEODETIC_DATUM_ASSUMED_WGS84", record_id_90129834.attribute('issues'))
             self.assertIn("COUNTRY_DERIVED_FROM_COORDINATES", record_id_90129834.attribute('issues'))
 
-
+        # TODO:
+        # Regression test: test plugin remove itself from Menu when deactivated.
+        # Regression test: that GBIF API error messages are displayed back to the user
+        # (for example: using mammalia as TaxonKey => Invalid integer range: mammalia)
 if __name__ == "__main__":
     suite = unittest.makeSuite(GBIFOccurrencesDialogTest)
     runner = unittest.TextTestRunner(verbosity=2)

@@ -81,7 +81,7 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
-        self.setFixedSize(self.size());
+        self.setFixedSize(self.size())
 
         self._populate_bor()
         self._populate_countries()
@@ -96,6 +96,12 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
 
         self.loadButton.clicked.connect(self.load_occurrences)
         self.yearRangeBox.clicked.connect(self.year_range_ui)
+
+        self.stop = False
+        self.stopButton.clicked.connect(self.clicked_stop_button)
+
+    def clicked_stop_button(self):
+        self.stop = True
 
     def _populate_countries(self):
         _populate_country_field(self.countryComboBox)
@@ -123,8 +129,10 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
 
     def before_search_ui(self):
         self._disable_controls()
+        self.stopButton.setDisabled(False)
 
     def after_search_ui(self):
+        self.stopButton.setDisabled(True)
         self._enable_controls()
 
         self.year_range_ui()  # We may have messed up with enabled status of year fields...
@@ -183,6 +191,10 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
                 already_loaded_records = 0
 
                 for occ in get_occurrences_in_baches(filters):
+                    if self.stop:  # Interrupt process if the stop button was pressed
+                        self.stop = False
+                        break
+
                     already_loaded_records += len(occ)
                     self.show_progress(already_loaded_records, count)
                     add_gbif_occ_to_layer(occ, layer)

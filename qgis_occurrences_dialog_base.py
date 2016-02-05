@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'qgis_occurrences_dialog_base.ui'
 #
-# Created: Wed Feb 25 16:04:51 2015
-#      by: PyQt4 UI code generator 4.11.2
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -28,11 +27,11 @@ class Ui_GBIFOccurrencesDialogBase(object):
         GBIFOccurrencesDialogBase.setObjectName(_fromUtf8("GBIFOccurrencesDialogBase"))
         GBIFOccurrencesDialogBase.resize(544, 662)
         self.progressBar = QtGui.QProgressBar(GBIFOccurrencesDialogBase)
-        self.progressBar.setGeometry(QtCore.QRect(160, 620, 371, 31))
+        self.progressBar.setGeometry(QtCore.QRect(216, 610, 321, 31))
         self.progressBar.setProperty("value", 0)
         self.progressBar.setObjectName(_fromUtf8("progressBar"))
         self.loadButton = QtGui.QPushButton(GBIFOccurrencesDialogBase)
-        self.loadButton.setGeometry(QtCore.QRect(10, 620, 141, 31))
+        self.loadButton.setGeometry(QtCore.QRect(10, 611, 141, 30))
         self.loadButton.setCheckable(False)
         self.loadButton.setDefault(False)
         self.loadButton.setFlat(False)
@@ -58,7 +57,6 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.layoutWidget.setGeometry(QtCore.QRect(73, 130, 391, 408))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.layoutWidget)
-        self.gridLayout.setMargin(0)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.institutionCodeField = QtGui.QLineEdit(self.layoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
@@ -160,6 +158,17 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.label_6 = QtGui.QLabel(self.layoutWidget)
         self.label_6.setObjectName(_fromUtf8("label_6"))
         self.gridLayout.addWidget(self.label_6, 9, 0, 1, 1)
+        self.stopButton = QtGui.QPushButton(GBIFOccurrencesDialogBase)
+        self.stopButton.setEnabled(False)
+        self.stopButton.setGeometry(QtCore.QRect(150, 611, 61, 31))
+        self.stopButton.setObjectName(_fromUtf8("stopButton"))
+        self.layoutWidget.raise_()
+        self.progressBar.raise_()
+        self.loadButton.raise_()
+        self.loadingLabel.raise_()
+        self.line.raise_()
+        self.label_4.raise_()
+        self.stopButton.raise_()
 
         self.retranslateUi(GBIFOccurrencesDialogBase)
         QtCore.QMetaObject.connectSlotsByName(GBIFOccurrencesDialogBase)
@@ -183,4 +192,5 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.label_11.setText(_translate("GBIFOccurrencesDialogBase", "Dataset key:", None))
         self.label_12.setText(_translate("GBIFOccurrencesDialogBase", "Recorded by:", None))
         self.label_6.setText(_translate("GBIFOccurrencesDialogBase", "Publishing Country:", None))
+        self.stopButton.setText(_translate("GBIFOccurrencesDialogBase", "Stop", None))
 

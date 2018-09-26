@@ -13,13 +13,15 @@
 
 """
 
+from builtins import str
 import os
 import sys
 
-from PyQt4 import QtGui, uic, Qt
+from qgis.PyQt import QtGui, QtWidgets, uic
+from PyQt5.QtWidgets import QApplication
 
-from helpers import create_and_add_layer, add_gbif_occ_to_layer
-from gbif_webservices import (get_occurrences_in_baches, count_occurrences, ConnectionIssue,
+from .helpers import create_and_add_layer, add_gbif_occ_to_layer
+from .gbif_webservices import (get_occurrences_in_baches, count_occurrences, ConnectionIssue,
                               GBIFApiError, MAX_TOTAL_RECORDS_GBIF)
 
 parent_dir = os.path.abspath(os.path.dirname(__file__))
@@ -55,7 +57,7 @@ def _get_val_or_range(checkbox, min_field, max_field):
         return min_field.text()
 
 
-class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
+class GBIFOccurrencesDialog(QtWidgets.QDialog, FORM_CLASS):
     # Key: UI label
     # Value: GBIF filter constants, see
     # http://gbif.github.io/gbif-api/apidocs/org/gbif/api/vocabulary/BasisOfRecord.html
@@ -110,7 +112,7 @@ class GBIFOccurrencesDialog(QtGui.QDialog, FORM_CLASS):
         _populate_country_field(self.publishingCountryComboBox)
 
     def _populate_bor(self):
-        vals = self.BOR.keys()
+        vals = list(self.BOR.keys())
         self.basisComboBox.addItems(sorted(vals))
 
     def _disable_controls(self):
@@ -151,7 +153,7 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
         self.error_message("Cannot connect to GBIF. Please check your Internet connection.")
 
     def error_message(self, msg):
-        QtGui.QMessageBox.critical(self, "Error", msg)
+        QtWidgets.QMessageBox.critical(self, "Error", msg)
 
     def _ui_to_filters(self):
         return {'scientificName': self.scientificNameField.text(),
@@ -200,10 +202,10 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
                     add_gbif_occ_to_layer(occ, layer)
 
                     # We need this to make UI responsive (progress bar advance, ...)
-                    Qt.QApplication.processEvents()
+                    QApplication.processEvents()
 
                 self.after_search_ui()
 
                 self.close()
             else:
-                QtGui.QMessageBox.information(self, "Warning", "No results returned.")
+                QtWidgets.QMessageBox.information(self, "Warning", "No results returned.")

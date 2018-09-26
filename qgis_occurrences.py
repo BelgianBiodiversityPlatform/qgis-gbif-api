@@ -12,16 +12,18 @@
  ***************************************************************************/
 
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt4.QtGui import QAction, QIcon
+from builtins import object
+from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtGui import QIcon
 # Initialize Qt resources from file resources.py
-import resources_rc
+from . import resources_rc
 # Import the code for the dialog
-from qgis_occurrences_dialog import GBIFOccurrencesDialog
+from .qgis_occurrences_dialog import GBIFOccurrencesDialog
 import os.path
 
 
-class GBIFOccurrences:
+class GBIFOccurrences(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):

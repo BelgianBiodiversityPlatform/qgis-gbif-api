@@ -4,6 +4,7 @@
 # This module is part of urllib3 and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
+from builtins import str
 import codecs
 import mimetypes
 

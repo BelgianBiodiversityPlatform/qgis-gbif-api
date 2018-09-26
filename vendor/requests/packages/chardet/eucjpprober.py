@@ -25,6 +25,8 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from builtins import str
+from builtins import range
 import sys
 from . import constants
 from .mbcharsetprober import MultiByteCharSetProber

@@ -26,11 +26,12 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from builtins import object
 from . import constants
 import re
 
 
-class CharSetProber:
+class CharSetProber(object):
     def __init__(self):
         pass
 

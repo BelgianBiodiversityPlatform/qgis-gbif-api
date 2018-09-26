@@ -7,6 +7,8 @@ requests.auth
 This module contains the authentication handlers for Requests.
 """
 
+from builtins import str
+from builtins import object
 import os
 import re
 import time

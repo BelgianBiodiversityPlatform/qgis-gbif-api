@@ -8,6 +8,8 @@ Data structures that power Requests.
 
 """
 
+from builtins import str
+from builtins import object
 import os
 import collections
 from itertools import islice
@@ -80,7 +82,7 @@ class CaseInsensitiveDict(collections.MutableMapping):
         del self._store[key.lower()]
 
     def __iter__(self):
-        return (casedkey for casedkey, mappedvalue in self._store.values())
+        return (casedkey for casedkey, mappedvalue in list(self._store.values()))
 
     def __len__(self):
         return len(self._store)
@@ -90,7 +92,7 @@ class CaseInsensitiveDict(collections.MutableMapping):
         return (
             (lowerkey, keyval[1])
             for (lowerkey, keyval)
-            in self._store.items()
+            in list(self._store.items())
         )
 
     def __eq__(self, other):
@@ -103,10 +105,10 @@ class CaseInsensitiveDict(collections.MutableMapping):
 
     # Copy is required
     def copy(self):
-        return CaseInsensitiveDict(self._store.values())
+        return CaseInsensitiveDict(list(self._store.values()))
 
     def __repr__(self):
-        return str(dict(self.items()))
+        return str(dict(list(self.items())))
 
 class LookupDict(dict):
     """Dictionary lookup object."""

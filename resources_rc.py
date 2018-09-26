@@ -2,13 +2,13 @@
 
 # Resource object code
 #
-# Created by: The Resource Compiler for PyQt4 (Qt v4.8.6)
+# Created by: The Resource Compiler for PyQt5 (Qt v5.9.4)
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
-qt_resource_data = "\
+qt_resource_data = b"\
 \x00\x00\x01\x61\
 \x89\
 \x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x52\x00\
@@ -36,7 +36,7 @@ qt_resource_data = "\
 \
 "
 
-qt_resource_name = "\
+qt_resource_name = b"\
 \x00\x07\
 \x07\x3b\xe0\xb3\
 \x00\x70\
@@ -51,17 +51,36 @@ qt_resource_name = "\
 \x00\x63\x00\x6f\x00\x6e\x00\x2e\x00\x70\x00\x6e\x00\x67\
 "
 
-qt_resource_struct = "\
+qt_resource_struct_v1 = b"\
 \x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x01\
 \x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\
 \x00\x00\x00\x14\x00\x02\x00\x00\x00\x01\x00\x00\x00\x03\
 \x00\x00\x00\x38\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\
 "
 
+qt_resource_struct_v2 = b"\
+\x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x01\
+\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\
+\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x14\x00\x02\x00\x00\x00\x01\x00\x00\x00\x03\
+\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x38\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\
+\x00\x00\x01\x65\xfc\x72\xf1\x60\
+"
+
+qt_version = QtCore.qVersion().split('.')
+if qt_version < ['5', '8', '0']:
+    rcc_version = 1
+    qt_resource_struct = qt_resource_struct_v1
+else:
+    rcc_version = 2
+    qt_resource_struct = qt_resource_struct_v2
+
 def qInitResources():
-    QtCore.qRegisterResourceData(0x01, qt_resource_struct, qt_resource_name, qt_resource_data)
+    QtCore.qRegisterResourceData(rcc_version, qt_resource_struct, qt_resource_name, qt_resource_data)
 
 def qCleanupResources():
-    QtCore.qUnregisterResourceData(0x01, qt_resource_struct, qt_resource_name, qt_resource_data)
+    QtCore.qUnregisterResourceData(rcc_version, qt_resource_struct, qt_resource_name, qt_resource_data)
 
 qInitResources()

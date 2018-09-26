@@ -25,6 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from builtins import range
 from . import constants
 from .charsetprober import CharSetProber
 from .codingstatemachine import CodingStateMachine

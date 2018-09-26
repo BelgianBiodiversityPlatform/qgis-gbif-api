@@ -4,11 +4,12 @@
 # This module is part of urllib3 and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
+from builtins import object
 from collections import Mapping, MutableMapping
 try:
     from threading import RLock
 except ImportError: # Platform-specific: No threads available
-    class RLock:
+    class RLock(object):
         def __enter__(self):
             pass
 
@@ -101,7 +102,7 @@ class RecentlyUsedContainer(MutableMapping):
 
     def keys(self):
         with self.lock:
-            return self._container.keys()
+            return list(self._container.keys())
 
 
 class HTTPHeaderDict(MutableMapping):
@@ -202,4 +203,4 @@ class HTTPHeaderDict(MutableMapping):
             yield headers[0][0]
 
     def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, dict(self.items()))
+        return '%s(%r)' % (self.__class__.__name__, dict(list(self.items())))

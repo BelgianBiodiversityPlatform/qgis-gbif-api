@@ -1,13 +1,13 @@
 import json
 
-from qgis.core import (QgsVectorLayer, QgsMapLayerRegistry, QgsFeature, QgsGeometry, QgsPoint, QgsField)
-from PyQt4 import QtCore
+from qgis.core import (QgsVectorLayer, QgsProject, QgsFeature, QgsGeometry, QgsPointXY, QgsField)
+from qgis.PyQt import QtCore
 
 
 def create_and_add_layer(name, epsg_id=4326):
     """Create a new memory layer, add it to the map and return it."""
     mem_layer = QgsVectorLayer("Point?crs=epsg:{id}&index=true".format(id=epsg_id), name, "memory")
-    QgsMapLayerRegistry.instance().addMapLayer(mem_layer)
+    QgsProject.instance().addMapLayer(mem_layer)
 
     return mem_layer
 
@@ -47,7 +47,7 @@ def add_gbif_occ_to_layer(occurrences, layer):
 
     for o in occurrences:
         attrs = []
-        for k in o.keys():
+        for k in list(o.keys()):
             field_index = dp.fieldNameIndex(k)
             # Add a layer attribute for each JSON fields(if not already encountered)
             if field_index == -1:
@@ -65,7 +65,7 @@ def add_gbif_occ_to_layer(occurrences, layer):
         for d in attrs:
             feat.setAttribute(d['attr'], d['val'])
 
-        feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(o['decimalLongitude'], o['decimalLatitude'])))
+        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(o['decimalLongitude'], o['decimalLatitude'])))
         
         features.append(feat)
 

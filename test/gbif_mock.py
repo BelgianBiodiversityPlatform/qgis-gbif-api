@@ -1,5 +1,5 @@
 import os
-import urlparse
+import urllib.parse
 
 from httmock import all_requests, response
 
@@ -13,8 +13,8 @@ def _sample_data(path):
 
 
 def parameters_match_exactly(request, p):
-    parsed = urlparse.urlparse(request.url)
-    parsed2 = urlparse.parse_qs(parsed.query)
+    parsed = urllib.parse.urlparse(request.url)
+    parsed2 = urllib.parse.parse_qs(parsed.query)
 
     # from nose.tools import set_trace; set_trace()
     return p == parsed2

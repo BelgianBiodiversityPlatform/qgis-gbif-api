@@ -1,7 +1,7 @@
 import os
 import sys
 
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 parent_dir = os.path.abspath(os.path.dirname(__file__))
 vendor_dir = os.path.join(parent_dir, 'vendor')
@@ -22,7 +22,7 @@ class GBIFApiError(Exception):
 
 def _finalize_filters(filters):
     fixed_filters = {'hasCoordinate': 'true', 'limit': RECORDS_PER_PAGE}
-    return dict(filters.items() + fixed_filters.items())
+    return dict(list(filters.items()) + list(fixed_filters.items()))
 
 
 def count_occurrences(filters):

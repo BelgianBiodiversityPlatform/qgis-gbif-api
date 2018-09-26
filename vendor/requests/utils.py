@@ -9,6 +9,9 @@ that are also useful for external consumption.
 
 """
 
+from builtins import str
+from builtins import chr
+from builtins import range
 import cgi
 import codecs
 import collections
@@ -40,7 +43,7 @@ def dict_to_sequence(d):
     """Returns an internal sequence dictionary update."""
 
     if hasattr(d, 'items'):
-        d = d.items()
+        d = list(d.items())
 
     return d
 
@@ -161,7 +164,7 @@ def to_key_val_list(value):
         raise ValueError('cannot encode objects that are not 2-tuples')
 
     if isinstance(value, collections.Mapping):
-        value = value.items()
+        value = list(value.items())
 
     return list(value)
 

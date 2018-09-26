@@ -5,13 +5,14 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
+from builtins import object
 import logging
 import zlib
 import io
 
 from ._collections import HTTPHeaderDict
 from .exceptions import DecodeError
-from .packages.six import string_types as basestring, binary_type
+from .packages.six import string_types as str, binary_type
 from .util import is_fp_closed
 
 
@@ -91,7 +92,7 @@ class HTTPResponse(io.IOBase):
         self.decode_content = decode_content
 
         self._decoder = None
-        self._body = body if body and isinstance(body, basestring) else None
+        self._body = body if body and isinstance(body, str) else None
         self._fp = None
         self._original_response = original_response
         self._fp_bytes_read = 0

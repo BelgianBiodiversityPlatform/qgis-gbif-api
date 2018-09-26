@@ -26,6 +26,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from builtins import object
 from . import constants
 import sys
 import codecs
@@ -41,7 +42,7 @@ eEscAscii = 1
 eHighbyte = 2
 
 
-class UniversalDetector:
+class UniversalDetector(object):
     def __init__(self):
         self._highBitDetector = re.compile(b'[\x80-\xFF]')
         self._escDetector = re.compile(b'(\033|~{)')

@@ -7,6 +7,9 @@ requests.models
 This module contains the primary objects that power Requests.
 """
 
+from builtins import bytes
+from builtins import str
+from builtins import object
 import collections
 import datetime
 
@@ -29,7 +32,7 @@ from .utils import (
     iter_slices, guess_json_utf, super_len, to_native_string)
 from .compat import (
     cookielib, urlunparse, urlsplit, urlencode, str, bytes, StringIO,
-    is_py2, chardet, json, builtin_str, basestring, IncompleteRead)
+    is_py2, chardet, json, builtin_str, str, IncompleteRead)
 from .status_codes import codes
 
 #: The set of HTTP status codes that indicate an automatically
@@ -83,7 +86,7 @@ class RequestEncodingMixin(object):
         elif hasattr(data, '__iter__'):
             result = []
             for k, vs in to_key_val_list(data):
-                if isinstance(vs, basestring) or not hasattr(vs, '__iter__'):
+                if isinstance(vs, str) or not hasattr(vs, '__iter__'):
                     vs = [vs]
                 for v in vs:
                     if v is not None:
@@ -105,7 +108,7 @@ class RequestEncodingMixin(object):
         """
         if (not files):
             raise ValueError("Files must be provided.")
-        elif isinstance(data, basestring):
+        elif isinstance(data, str):
             raise ValueError("Data must not be a string.")
 
         new_fields = []
@@ -113,7 +116,7 @@ class RequestEncodingMixin(object):
         files = to_key_val_list(files or {})
 
         for field, val in fields:
-            if isinstance(val, basestring) or not hasattr(val, '__iter__'):
+            if isinstance(val, str) or not hasattr(val, '__iter__'):
                 val = [val]
             for v in val:
                 if v is not None:
@@ -325,7 +328,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         """Prepares the given HTTP URL."""
         #: Accept objects that have string representations.
         try:
-            url = unicode(url)
+            url = str(url)
         except NameError:
             # We're on Python 3.
             url = str(url)
@@ -391,7 +394,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         """Prepares the given HTTP headers."""
 
         if headers:
-            self.headers = CaseInsensitiveDict((to_native_string(name), value) for name, value in headers.items())
+            self.headers = CaseInsensitiveDict((to_native_string(name), value) for name, value in list(headers.items()))
         else:
             self.headers = CaseInsensitiveDict()
 
@@ -408,7 +411,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
 
         is_stream = all([
             hasattr(data, '__iter__'),
-            not isinstance(data, (basestring, list, tuple, dict))
+            not isinstance(data, (str, list, tuple, dict))
         ])
 
         try:
@@ -568,7 +571,7 @@ class Response(object):
         )
 
     def __setstate__(self, state):
-        for name, value in state.items():
+        for name, value in list(state.items()):
             setattr(self, name, value)
 
         # pickled objects do not have .raw
@@ -582,7 +585,7 @@ class Response(object):
         """Returns true if :attr:`status_code` is 'OK'."""
         return self.ok
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Returns true if :attr:`status_code` is 'OK'."""
         return self.ok
 

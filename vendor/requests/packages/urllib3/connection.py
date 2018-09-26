@@ -4,6 +4,7 @@
 # This module is part of urllib3 and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
+from builtins import object
 import sys
 import socket
 from socket import timeout as SocketTimeout
@@ -11,7 +12,7 @@ from socket import timeout as SocketTimeout
 try: # Python 3
     from http.client import HTTPConnection as _HTTPConnection, HTTPException
 except ImportError:
-    from httplib import HTTPConnection as _HTTPConnection, HTTPException
+    from http.client import HTTPConnection as _HTTPConnection, HTTPException
 
 class DummyConnection(object):
     "Used to detect a failed ConnectionCls import."
@@ -27,7 +28,7 @@ try: # Compiled with SSL?
     try: # Python 3
         from http.client import HTTPSConnection as _HTTPSConnection
     except ImportError:
-        from httplib import HTTPSConnection as _HTTPSConnection
+        from http.client import HTTPSConnection as _HTTPSConnection
 
     import ssl
     BaseSSLError = ssl.SSLError

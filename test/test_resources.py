@@ -9,7 +9,7 @@ __copyright__ = 'Copyright 2014, Nicolas Noé - Belgian Biodiversity Platform'
 
 import unittest
 
-from PyQt4.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon
 
 
 class GBIFOccurrencesDialogTest(unittest.TestCase):

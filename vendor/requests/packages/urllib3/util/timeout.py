@@ -1,3 +1,4 @@
+from builtins import object
 from socket import _GLOBAL_DEFAULT_TIMEOUT
 import time
 

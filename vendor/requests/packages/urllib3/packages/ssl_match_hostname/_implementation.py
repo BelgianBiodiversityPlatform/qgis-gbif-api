@@ -3,6 +3,7 @@
 # Note: This file is under the PSF license as the code comes from the python
 # stdlib.   http://docs.python.org/3/license.html
 
+from builtins import map
 import re
 
 __version__ = '3.4.0.2'

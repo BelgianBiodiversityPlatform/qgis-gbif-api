@@ -46,6 +46,9 @@ Module Variables
 
 '''
 
+from builtins import str
+from builtins import range
+from builtins import object
 from ndg.httpsclient.ssl_peer_verification import SUBJ_ALT_NAME_SUPPORT
 from ndg.httpsclient.subj_alt_name import SubjectAltName as BaseSubjectAltName
 import OpenSSL.SSL
@@ -54,7 +57,7 @@ from pyasn1.type import univ, constraint
 from socket import _fileobject, timeout
 import ssl
 import select
-from cStringIO import StringIO
+from io import StringIO
 
 from .. import connection
 from .. import util

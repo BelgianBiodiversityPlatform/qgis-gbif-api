@@ -8,6 +8,7 @@ This module provides a Session object to manage and persist settings across
 requests (cookies, auth, proxies).
 
 """
+from builtins import object
 import os
 from collections import Mapping
 from datetime import datetime
@@ -60,11 +61,11 @@ def merge_setting(request_setting, session_setting, dict_class=OrderedDict):
     merged_setting.update(to_key_val_list(request_setting))
 
     # Remove keys that are set to None.
-    for (k, v) in request_setting.items():
+    for (k, v) in list(request_setting.items()):
         if v is None:
             del merged_setting[k]
 
-    merged_setting = dict((k, v) for (k, v) in merged_setting.items() if v is not None)
+    merged_setting = dict((k, v) for (k, v) in list(merged_setting.items()) if v is not None)
 
     return merged_setting
 
@@ -427,7 +428,7 @@ class Session(SessionRedirectMixin):
         if self.trust_env:
             # Set environment's proxies.
             env_proxies = get_environ_proxies(url) or {}
-            for (k, v) in env_proxies.items():
+            for (k, v) in list(env_proxies.items()):
                 proxies.setdefault(k, v)
 
             # Look for configuration.
@@ -599,7 +600,7 @@ class Session(SessionRedirectMixin):
 
     def get_adapter(self, url):
         """Returns the appropriate connnection adapter for the given URL."""
-        for (prefix, adapter) in self.adapters.items():
+        for (prefix, adapter) in list(self.adapters.items()):
 
             if url.lower().startswith(prefix):
                 return adapter
@@ -609,7 +610,7 @@ class Session(SessionRedirectMixin):
 
     def close(self):
         """Closes all adapters and as such the session"""
-        for v in self.adapters.values():
+        for v in list(self.adapters.values()):
             v.close()
 
     def mount(self, prefix, adapter):
@@ -627,7 +628,7 @@ class Session(SessionRedirectMixin):
         return dict((attr, getattr(self, attr, None)) for attr in self.__attrs__)
 
     def __setstate__(self, state):
-        for attr, value in state.items():
+        for attr, value in list(state.items()):
             setattr(self, attr, value)
 
 

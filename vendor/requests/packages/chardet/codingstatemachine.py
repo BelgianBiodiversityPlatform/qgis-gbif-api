@@ -25,11 +25,12 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from builtins import object
 from .constants import eStart
 from .compat import wrap_ord
 
 
-class CodingStateMachine:
+class CodingStateMachine(object):
     def __init__(self, sm):
         self._mModel = sm
         self._mCurrentBytePos = 0

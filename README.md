@@ -14,8 +14,7 @@ Installation
 
 1. Launch QGIS
 2. In the main menu, go to `Plugins` -> `Manage and install plugins...`
-3. Go to `Settings`and make sure `Show also experimental plugins` is checked
-4. Go back to the `All` tab and search for `GBIF occurrences`
+4. Search for `GBIF occurrences`
 5. Select the plugin and click on `Install plugin`
 
 ![Plugin install window](./screenshot_install.png)
@@ -56,7 +55,7 @@ How-to release:
 ===============
 
 - Bump version number and update changelog in metadata.txt.
-- Submit the plugin to the QGIS plugins repository, after renaming the directory to `qgisgbifapi`.
+- Prepare a zip file from the plugin source code directory (see https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api/issues/33) and submit it to the QGIS plugins repository.
 - create a git tag and push it to github:
 
     $ git tag v0.1-in-plugin-repo

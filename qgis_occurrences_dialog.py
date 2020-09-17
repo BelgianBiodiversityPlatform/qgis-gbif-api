@@ -18,6 +18,7 @@ import os
 import sys
 
 from qgis.PyQt import QtGui, QtWidgets, uic
+from qgis.core import (QgsProject,QgsCoordinateReferenceSystem,QgsCoordinateTransform)
 from PyQt5.QtWidgets import QApplication
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
@@ -74,7 +75,7 @@ class GBIFOccurrencesDialog(QtWidgets.QDialog, FORM_CLASS):
         "Unknown": "UNKNOWN"
     }
 
-    def __init__(self, parent=None):
+    def __init__(self,iface, parent=None):
         """Constructor."""
         super(GBIFOccurrencesDialog, self).__init__(parent)
         # Set up the user interface from Designer.
@@ -94,13 +95,14 @@ class GBIFOccurrencesDialog(QtWidgets.QDialog, FORM_CLASS):
                                        self.institutionCodeField, self.collectionCodeField,
                                        self.yearRangeBox, self.maxYearEdit, self.minYearEdit,
                                        self.taxonKeyField, self.datasetKeyField,
-                                       self.recordedByField)
+                                       self.recordedByField,self.extentBox)
 
         self.loadButton.clicked.connect(self.load_occurrences)
         self.yearRangeBox.clicked.connect(self.year_range_ui)
 
         self.stop = False
         self.stopButton.clicked.connect(self.clicked_stop_button)
+        self.iface=iface
 
     def clicked_stop_button(self):
         self.stop = True
@@ -156,7 +158,7 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
         QtWidgets.QMessageBox.critical(self, "Error", msg)
 
     def _ui_to_filters(self):
-        return {'scientificName': self.scientificNameField.text(),
+        result= {'scientificName': self.scientificNameField.text(),
                 'basisOfRecord': self.BOR[self.basisComboBox.currentText()],
                 'country': _get_selected_country_code(self.countryComboBox),
                 'catalogNumber': self.catalogNumberField.text(),
@@ -167,6 +169,18 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
                 'taxonKey': self.taxonKeyField.text(),
                 'datasetKey': self.datasetKeyField.text(),
                 'recordedBy': self.recordedByField.text()}
+
+        if self.extentBox.isChecked():
+            canvas = self.iface.mapCanvas()
+            destCrs = QgsCoordinateReferenceSystem(4326)
+            srcCrs = canvas.mapSettings().destinationCrs()
+            tr=QgsCoordinateTransform(srcCrs,destCrs,QgsProject.instance())
+            canvasExtent = tr.transform(canvas.extent())
+            extent = "POLYGON(({}))".format(  canvasExtent.asPolygon())
+            result["geometry"] = extent
+
+        return result
+
 
     def year_range_ui(self):
         if self.yearRangeBox.isChecked():

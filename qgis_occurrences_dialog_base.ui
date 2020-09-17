@@ -81,7 +81,7 @@
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>90</y>
+     <y>20</y>
      <width>62</width>
      <height>20</height>
     </rect>
@@ -101,14 +101,31 @@
    <property name="geometry">
     <rect>
      <x>73</x>
-     <y>130</y>
+     <y>60</y>
      <width>391</width>
-     <height>408</height>
+     <height>491</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="11" column="1">
-     <widget class="QLineEdit" name="institutionCodeField">
+    <item row="9" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Publishing Country:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_12">
+      <property name="text">
+       <string>Recorded by:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="1">
+     <widget class="QComboBox" name="publishingCountryComboBox"/>
+    </item>
+    <item row="12" column="1">
+     <widget class="QLineEdit" name="collectionCodeField">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
         <horstretch>0</horstretch>
@@ -119,6 +136,116 @@
     </item>
     <item row="15" column="1">
      <widget class="QLineEdit" name="datasetKeyField"/>
+    </item>
+    <item row="11" column="1">
+     <widget class="QLineEdit" name="institutionCodeField">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0" colspan="2">
+     <widget class="QLabel" name="label_15">
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>About data source:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QComboBox" name="countryComboBox"/>
+    </item>
+    <item row="3" column="1">
+     <widget class="QComboBox" name="basisComboBox"/>
+    </item>
+    <item row="0" column="0" colspan="2">
+     <widget class="QLabel" name="label_13">
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>About occurrence:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Country:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="0">
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>Year:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Catalog Number:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="taxonKeyField"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Scientific name:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="scientificNameField"/>
+    </item>
+    <item row="6" column="1">
+     <widget class="QLineEdit" name="recordedByField"/>
+    </item>
+    <item row="11" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Institution Code:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QLineEdit" name="catalogNumberField"/>
+    </item>
+    <item row="15" column="0">
+     <widget class="QLabel" name="label_11">
+      <property name="text">
+       <string>Dataset key:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Basis of record:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="0">
+     <widget class="QLabel" name="label_8">
+      <property name="text">
+       <string>Collection Code:</string>
+      </property>
+     </widget>
     </item>
     <item row="7" column="1">
      <layout class="QGridLayout" name="gridLayout_2">
@@ -141,32 +268,6 @@
       </item>
      </layout>
     </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="taxonKeyField"/>
-    </item>
-    <item row="5" column="1">
-     <widget class="QLineEdit" name="catalogNumberField"/>
-    </item>
-    <item row="0" column="0" colspan="2">
-     <widget class="QLabel" name="label_13">
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>About occurrence:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="12" column="0">
-     <widget class="QLabel" name="label_8">
-      <property name="text">
-       <string>Collection Code:</string>
-      </property>
-     </widget>
-    </item>
     <item row="2" column="0">
      <widget class="QLabel" name="label_10">
       <property name="text">
@@ -174,104 +275,10 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_3">
+    <item row="16" column="1">
+     <widget class="QCheckBox" name="extentBox">
       <property name="text">
-       <string>Country:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Basis of record:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="1">
-     <widget class="QLineEdit" name="recordedByField"/>
-    </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="label_5">
-      <property name="text">
-       <string>Catalog Number:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="0" colspan="2">
-     <widget class="QLabel" name="label_15">
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>About data source:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="0">
-     <widget class="QLabel" name="label_9">
-      <property name="text">
-       <string>Year:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
-     <widget class="QComboBox" name="countryComboBox"/>
-    </item>
-    <item row="3" column="1">
-     <widget class="QComboBox" name="basisComboBox"/>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>Scientific name:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="scientificNameField"/>
-    </item>
-    <item row="11" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="text">
-       <string>Institution Code:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="15" column="0">
-     <widget class="QLabel" name="label_11">
-      <property name="text">
-       <string>Dataset key:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label_12">
-      <property name="text">
-       <string>Recorded by:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="12" column="1">
-     <widget class="QLineEdit" name="collectionCodeField">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="1">
-     <widget class="QComboBox" name="publishingCountryComboBox"/>
-    </item>
-    <item row="9" column="0">
-     <widget class="QLabel" name="label_6">
-      <property name="text">
-       <string>Publishing Country:</string>
+       <string>Map Canvas Extent</string>
       </property>
      </widget>
     </item>

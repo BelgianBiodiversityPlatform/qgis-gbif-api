@@ -53,7 +53,7 @@ class GBIFOccurrences(object):
                 QCoreApplication.installTranslator(self.translator)
 
         # Create the dialog (after translation) and keep reference
-        self.dlg = GBIFOccurrencesDialog()
+        self.dlg = GBIFOccurrencesDialog(iface)
 
         # Declare instance attributes
         self.actions = []
@@ -174,4 +174,4 @@ class GBIFOccurrences(object):
         self.dlg.show()
         # Run the dialog event loop
         self.dlg.exec_()
-        
+

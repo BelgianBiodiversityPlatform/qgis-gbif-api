@@ -147,7 +147,7 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
         self.loadingLabel.setText("Adding " + str(already_loaded_records) +
                                   "/" + str(total_records))
         percent = ((already_loaded_records / float(total_records)) * 100)
-        self.progressBar.setValue(percent)
+        self.progressBar.setValue(int(percent))
 
     def connection_error_message(self):
         self.error_message("Cannot connect to GBIF. Please check your Internet connection.")

@@ -21,6 +21,7 @@ about=GBIF Occurrences is a QGIS plugin to directly download and import GBIF occ
 
 # Uncomment the following line and add your changelog:
 changelog=
+    0.3.4 - Marked as non-experimental, fix LICENSE file name
     0.3.3 - Fixed a bug with recent QGIS version, thanks @hypsug0
     0.3.0 - Support for QGIS 3
     0.2.0 - Loading process is now interruptible
@@ -38,7 +39,7 @@ tracker=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api/issues
 repository=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

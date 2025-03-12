@@ -21,7 +21,7 @@ from qgis.PyQt import QtGui, QtWidgets, uic
 from PyQt5.QtWidgets import QApplication
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
-from .gbif_webservices import (get_occurrences_in_baches, count_occurrences, ConnectionIssue,
+from .gbif_webservices import (get_occurrences_in_batches, count_occurrences, ConnectionIssue,
                               GBIFApiError, MAX_TOTAL_RECORDS_GBIF)
 
 parent_dir = os.path.abspath(os.path.dirname(__file__))
@@ -74,14 +74,10 @@ class GBIFOccurrencesDialog(QtWidgets.QDialog, FORM_CLASS):
         "Unknown": "UNKNOWN"
     }
 
+
     def __init__(self, parent=None):
         """Constructor."""
         super(GBIFOccurrencesDialog, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.setFixedSize(self.size())
 
@@ -94,7 +90,7 @@ class GBIFOccurrencesDialog(QtWidgets.QDialog, FORM_CLASS):
                                        self.institutionCodeField, self.collectionCodeField,
                                        self.yearRangeBox, self.maxYearEdit, self.minYearEdit,
                                        self.taxonKeyField, self.datasetKeyField,
-                                       self.recordedByField)
+                                       self.recordedByField, self.gadmGidField)  # Hinzugefügt
 
         self.loadButton.clicked.connect(self.load_occurrences)
         self.yearRangeBox.clicked.connect(self.year_range_ui)
@@ -166,11 +162,13 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
                 'year': _get_val_or_range(self.yearRangeBox, self.minYearEdit, self.maxYearEdit),
                 'taxonKey': self.taxonKeyField.text(),
                 'datasetKey': self.datasetKeyField.text(),
-                'recordedBy': self.recordedByField.text()}
+                'recordedBy': self.recordedByField.text(),
+                'gadm_gid': self.gadmGidField.text()}  # Hinzugefügt
 
     def year_range_ui(self):
         if self.yearRangeBox.isChecked():
             self.maxYearEdit.setDisabled(False)
+            self.maxYearEdit.setText(str(QtCore.QDate.currentDate().year()))
         else:
             self.maxYearEdit.setDisabled(True)
 
@@ -188,11 +186,14 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
                 self.dialog_too_many_results()
             elif count > 0:  # We have results
                 self.before_search_ui()
-                layer = create_and_add_layer(filters['scientificName'])
+                scientific_name = filters['scientificName']
+                if not scientific_name:
+                    scientific_name = "GBIF_O Taxon {}".format(filters['taxonKey'])
+                layer = create_and_add_layer(scientific_name)
 
                 already_loaded_records = 0
 
-                for occ in get_occurrences_in_baches(filters):
+                for occ in get_occurrences_in_batches(filters):
                     if self.stop:  # Interrupt process if the stop button was pressed
                         self.stop = False
                         break

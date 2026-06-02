@@ -77,7 +77,7 @@
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QLabel" name="label_4">
+  <widget class="QLabel" name="filtersLabel">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -103,7 +103,7 @@
      <x>10</x>
      <y>60</y>
      <width>391</width>
-     <height>420</height>
+     <height>445</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -111,14 +111,14 @@
      <widget class="QLineEdit" name="recordedByField"/>
     </item>
     <item row="3" column="0">
-     <widget class="QLabel" name="label_2">
+     <widget class="QLabel" name="basisLabel">
       <property name="text">
        <string>Basis of record:</string>
       </property>
      </widget>
     </item>
     <item row="2" column="0">
-     <widget class="QLabel" name="label_10">
+     <widget class="QLabel" name="taxonKeyLabel">
       <property name="text">
        <string>Taxon key:</string>
       </property>
@@ -128,7 +128,7 @@
      <widget class="QComboBox" name="basisComboBox"/>
     </item>
     <item row="10" column="0">
-     <widget class="QLabel" name="label_6">
+     <widget class="QLabel" name="publishingCountryLabel">
       <property name="text">
        <string>Publishing Country:</string>
       </property>
@@ -138,14 +138,14 @@
      <widget class="QLineEdit" name="taxonKeyField"/>
     </item>
     <item row="5" column="0">
-     <widget class="QLabel" name="label_5">
+     <widget class="QLabel" name="catalogNumberLabel">
       <property name="text">
        <string>Catalog Number:</string>
       </property>
      </widget>
     </item>
     <item row="13" column="0">
-     <widget class="QLabel" name="label_8">
+     <widget class="QLabel" name="collectionCodeLabel">
       <property name="text">
        <string>Collection Code:</string>
       </property>
@@ -155,7 +155,7 @@
      <widget class="QComboBox" name="countryComboBox"/>
     </item>
     <item row="7" column="0">
-     <widget class="QLabel" name="label_12">
+     <widget class="QLabel" name="recordedByLabel">
       <property name="text">
        <string>Recorded by:</string>
       </property>
@@ -183,7 +183,7 @@
      </layout>
     </item>
     <item row="1" column="0">
-     <widget class="QLabel" name="label">
+     <widget class="QLabel" name="scientificNameLabel">
       <property name="text">
        <string>Scientific name:</string>
       </property>
@@ -193,7 +193,7 @@
      <widget class="QLineEdit" name="scientificNameField"/>
     </item>
     <item row="8" column="0">
-     <widget class="QLabel" name="label_9">
+     <widget class="QLabel" name="yearLabel">
       <property name="text">
        <string>Year:</string>
       </property>
@@ -203,7 +203,7 @@
      <widget class="QLineEdit" name="datasetKeyField"/>
     </item>
     <item row="9" column="0" colspan="2">
-     <widget class="QLabel" name="label_15">
+     <widget class="QLabel" name="aboutDataSouLabel">
       <property name="font">
        <font>
         <weight>75</weight>
@@ -229,28 +229,28 @@
      <widget class="QLineEdit" name="catalogNumberField"/>
     </item>
     <item row="12" column="0">
-     <widget class="QLabel" name="label_7">
+     <widget class="QLabel" name="institutiuonCodeLabel">
       <property name="text">
        <string>Institution Code:</string>
       </property>
      </widget>
     </item>
     <item row="16" column="0">
-     <widget class="QLabel" name="label_11">
+     <widget class="QLabel" name="datasetKeyLabel">
       <property name="text">
        <string>Dataset key:</string>
       </property>
      </widget>
     </item>
     <item row="4" column="0">
-     <widget class="QLabel" name="label_3">
+     <widget class="QLabel" name="countryLabel">
       <property name="text">
        <string>Country:</string>
       </property>
      </widget>
     </item>
     <item row="0" column="0" colspan="2">
-     <widget class="QLabel" name="label_13">
+     <widget class="QLabel" name="aboutOccLabel">
       <property name="font">
        <font>
         <weight>75</weight>
@@ -276,7 +276,7 @@
      <widget class="QComboBox" name="publishingCountryComboBox"/>
     </item>
     <item row="6" column="0">
-     <widget class="QLabel" name="label_gadm_gid">
+     <widget class="QLabel" name="gadmGidLabel">
       <property name="text">
        <string>GADM.org Area Code:</string>
       </property>
@@ -308,7 +308,7 @@
   <zorder>loadButton</zorder>
   <zorder>loadingLabel</zorder>
   <zorder>line</zorder>
-  <zorder>label_4</zorder>
+  <zorder>filtersLabel</zorder>
   <zorder>stopButton</zorder>
  </widget>
  <resources/>

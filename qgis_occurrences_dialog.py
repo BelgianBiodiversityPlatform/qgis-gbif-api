@@ -85,16 +85,12 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self._populate_bor()
         self._populate_countries()
         self._populate_publishing_countries()
-        self.to_disable_during_load = (self.loadButton, self.scientificNameField,
-                                       self.basisComboBox, self.countryComboBox,
-                                       self.catalogNumberField, self.publishingCountryComboBox,
-                                       self.institutionCodeField, self.collectionCodeField,
-                                       self.yearRangeBox, self.maxYearEdit, self.minYearEdit,
-                                       self.taxonKeyField, self.datasetKeyField,
-                                       self.recordedByField, self.gadmGidField)  # Hinzugefügt
+        # self.to_disable_during_load = ()  # Hinzugefügt
 
         self.loadButton.clicked.connect(self.load_occurrences)
         self.yearRangeBox.clicked.connect(self.year_range_ui)
+        self.bboxCheckBox.clicked.connect(self.localisation_selection_ui)
+        self.boundariesCheckBox.clicked.connect(self.localisation_selection_ui)
 
         self.stop = False
         self.stopButton.clicked.connect(self.clicked_stop_button)
@@ -113,12 +109,10 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.basisComboBox.addItems(sorted(vals))
 
     def _disable_controls(self):
-        for widget in self.to_disable_during_load:
-            widget.setDisabled(True)
+        self.tabWidget.setDisabled(True)
 
     def _enable_controls(self):
-        for widget in self.to_disable_during_load:
-            widget.setDisabled(False)
+        self.tabWidget.setDisabled(False)
 
     def dialog_too_many_results(self):
         msg = """The query returned more than {max} records.\
@@ -135,6 +129,7 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
         self._enable_controls()
 
         self.year_range_ui()  # We may have messed up with enabled status of year fields...
+        self.localisation_selection_ui()
 
         # Theose have been affected during search
         self.progressBar.setValue(0)
@@ -172,6 +167,18 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
             self.maxYearEdit.setText(str(QDate.currentDate().year()))
         else:
             self.maxYearEdit.setDisabled(True)
+
+    def localisation_selection_ui(self):
+        if self.boundariesCheckBox.isChecked():
+            self.countryComboBox.setDisabled(False)
+            self.gadmGidField.setDisabled(False)
+            self.bboxButton.setDisabled(True)
+        else:
+            self.countryComboBox.setDisabled(True)
+            self.countryComboBox.setCurrentIndex(0)
+            self.gadmGidField.setDisabled(True)
+            self.gadmGidField.clear()
+            self.bboxButton.setDisabled(False)
 
     def load_occurrences(self):
         filters = self._ui_to_filters()

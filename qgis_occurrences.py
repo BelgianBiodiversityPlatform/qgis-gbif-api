@@ -13,6 +13,7 @@
 
 """
 from builtins import object
+from qgis.core import QgsProject
 from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon
@@ -36,6 +37,7 @@ class GBIFOccurrences(object):
         """
         # Save reference to the QGIS interface
         self.iface = iface
+        self.project = QgsProject.instance()
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
@@ -53,7 +55,7 @@ class GBIFOccurrences(object):
                 QCoreApplication.installTranslator(self.translator)
 
         # Create the dialog (after translation) and keep reference
-        self.dlg = GBIFOccurrencesDialog()
+        self.dlg = GBIFOccurrencesDialog(project=self.project, iface=self.iface)
 
         # Declare instance attributes
         self.actions = []
@@ -87,7 +89,8 @@ class GBIFOccurrences(object):
         add_to_toolbar=True,
         status_tip=None,
         whats_this=None,
-        parent=None):
+        parent=None,
+    ):
         """Add a toolbar icon to the InaSAFE toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -174,4 +177,3 @@ class GBIFOccurrences(object):
         self.dlg.show()
         # Run the dialog event loop
         self.dlg.exec_()
-        

@@ -2,7 +2,6 @@ import json
 
 from qgis.core import (
     QgsVectorLayer,
-    QgsProject,
     QgsFeature,
     QgsGeometry,
     QgsPointXY,
@@ -11,12 +10,12 @@ from qgis.core import (
 from qgis.PyQt.QtCore import QVariant
 
 
-def create_and_add_layer(name, epsg_id=4326):
+def create_and_add_layer(project, name, epsg_id=4326):
     """Create a new memory layer, add it to the map and return it."""
     mem_layer = QgsVectorLayer(
         "Point?crs=epsg:{id}&index=true".format(id=epsg_id), name, "memory"
     )
-    QgsProject.instance().addMapLayer(mem_layer)
+    project.addMapLayer(mem_layer)
 
     return mem_layer
 
@@ -39,7 +38,7 @@ def is_sequence(arg):
 
 
 # Takes data and return a string suitable for a (feature) attribute
-# It will be either a standard string, either a serialized JSON object 
+# It will be either a standard string, either a serialized JSON object
 # in case of complex structure
 def _get_field_value(o, field_name):
     value = o[field_name]

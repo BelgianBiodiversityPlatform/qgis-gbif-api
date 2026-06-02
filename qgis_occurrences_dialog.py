@@ -89,6 +89,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.project = project
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
+        self.rectangle = None
 
         self.setupUi(self)
         self.setFixedSize(self.size())

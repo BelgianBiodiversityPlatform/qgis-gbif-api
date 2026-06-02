@@ -1,12 +1,21 @@
 import json
 
-from qgis.core import (QgsVectorLayer, QgsProject, QgsFeature, QgsGeometry, QgsPointXY, QgsField)
-from qgis.PyQt import QtCore
+from qgis.core import (
+    QgsVectorLayer,
+    QgsProject,
+    QgsFeature,
+    QgsGeometry,
+    QgsPointXY,
+    QgsField,
+)
+from qgis.PyQt.QtCore import QVariant
 
 
 def create_and_add_layer(name, epsg_id=4326):
     """Create a new memory layer, add it to the map and return it."""
-    mem_layer = QgsVectorLayer("Point?crs=epsg:{id}&index=true".format(id=epsg_id), name, "memory")
+    mem_layer = QgsVectorLayer(
+        "Point?crs=epsg:{id}&index=true".format(id=epsg_id), name, "memory"
+    )
     QgsProject.instance().addMapLayer(mem_layer)
 
     return mem_layer
@@ -22,13 +31,16 @@ def add_features_to_layer(layer, features):
 
 # To distinguish sequences from strings
 def is_sequence(arg):
-    return (not hasattr(arg, "strip") and
-            hasattr(arg, "__getitem__") or
-            hasattr(arg, "__iter__"))
+    return (
+        not hasattr(arg, "strip")
+        and hasattr(arg, "__getitem__")
+        or hasattr(arg, "__iter__")
+    )
 
 
 # Takes data and return a string suitable for a (feature) attribute
-# It will be either a standard string, either a serialized JSON object in cas of complex structure
+# It will be either a standard string, either a serialized JSON object 
+# in case of complex structure
 def _get_field_value(o, field_name):
     value = o[field_name]
 
@@ -38,7 +50,7 @@ def _get_field_value(o, field_name):
         else:  # Case 2: It's a string
             return value
     else:  # Case 3: missing value
-        return ''
+        return ""
 
 
 def add_gbif_occ_to_layer(occurrences, layer):
@@ -49,11 +61,12 @@ def add_gbif_occ_to_layer(occurrences, layer):
         attrs = []
         for k in list(o.keys()):
             field_index = dp.fieldNameIndex(k)
-            # Add a layer attribute for each JSON fields(if not already encountered)
+            # Add a layer attribute for each JSON fields
+            # (if not already encountered)
             if field_index == -1:
-                dp.addAttributes([QgsField(k, QtCore.QVariant.String)])
-            
-            attrs.append({'attr': k, 'val': _get_field_value(o, k)})
+                dp.addAttributes([QgsField(k, QVariant.String)])
+
+            attrs.append({"attr": k, "val": _get_field_value(o, k)})
 
         feat = QgsFeature()
 
@@ -63,11 +76,14 @@ def add_gbif_occ_to_layer(occurrences, layer):
         feat.setFields(myFields)
 
         for d in attrs:
-            feat.setAttribute(d['attr'], d['val'])
+            feat.setAttribute(d["attr"], d["val"])
 
-        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(o['decimalLongitude'], o['decimalLatitude'])))
-        
+        feat.setGeometry(
+            QgsGeometry.fromPointXY(
+                QgsPointXY(o["decimalLongitude"], o["decimalLatitude"])
+            )
+        )
+
         features.append(feat)
 
     add_features_to_layer(layer, features)
-    

@@ -17,8 +17,10 @@ from builtins import str
 import os
 import sys
 
-from qgis.PyQt import QtGui, QtWidgets, uic
-from PyQt5.QtWidgets import QApplication
+
+from qgis.PyQt import uic
+from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QDialog
+from qgis.PyQt.QtCore import QDate
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
 from .gbif_webservices import (get_occurrences_in_batches, count_occurrences, ConnectionIssue,
@@ -57,7 +59,7 @@ def _get_val_or_range(checkbox, min_field, max_field):
         return min_field.text()
 
 
-class GBIFOccurrencesDialog(QtWidgets.QDialog, FORM_CLASS):
+class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
     # Key: UI label
     # Value: GBIF filter constants, see
     # http://gbif.github.io/gbif-api/apidocs/org/gbif/api/vocabulary/BasisOfRecord.html
@@ -73,7 +75,6 @@ class GBIFOccurrencesDialog(QtWidgets.QDialog, FORM_CLASS):
         "Preserved specimen": "PRESERVED_SPECIMEN",
         "Unknown": "UNKNOWN"
     }
-
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -123,7 +124,7 @@ class GBIFOccurrencesDialog(QtWidgets.QDialog, FORM_CLASS):
         msg = """The query returned more than {max} records.\
 Due to limitations in the GBIF infrastructure, very large queries are currently not \
 supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
-        QtGui.QMessageBox.information(self, "Error", msg)
+        QMessageBox.information(self, "Error", msg)
 
     def before_search_ui(self):
         self._disable_controls()
@@ -149,7 +150,7 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
         self.error_message("Cannot connect to GBIF. Please check your Internet connection.")
 
     def error_message(self, msg):
-        QtWidgets.QMessageBox.critical(self, "Error", msg)
+        QMessageBox.critical(self, "Error", msg)
 
     def _ui_to_filters(self):
         return {'scientificName': self.scientificNameField.text(),
@@ -168,7 +169,7 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
     def year_range_ui(self):
         if self.yearRangeBox.isChecked():
             self.maxYearEdit.setDisabled(False)
-            self.maxYearEdit.setText(str(QtCore.QDate.currentDate().year()))
+            self.maxYearEdit.setText(str(QDate.currentDate().year()))
         else:
             self.maxYearEdit.setDisabled(True)
 
@@ -209,4 +210,4 @@ supported.""".format(max=MAX_TOTAL_RECORDS_GBIF)
 
                 self.close()
             else:
-                QtWidgets.QMessageBox.information(self, "Warning", "No results returned.")
+                QMessageBox.information(self, "Warning", "No results returned.")

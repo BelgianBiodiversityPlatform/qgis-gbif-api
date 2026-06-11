@@ -215,7 +215,7 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             existing_layers = list(QgsMapLayerRegistry().instance().mapLayers().values())
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
-            self.dialog.minYearEdit.setText("1985")
+            self.dialog.minDateEdit.setText("1985")
 
             self.launch_search_and_wait()
             current_layers = list(QgsMapLayerRegistry().instance().mapLayers().values())
@@ -228,9 +228,8 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             existing_layers = list(QgsMapLayerRegistry().instance().mapLayers().values())
 
             self.dialog.scientificNameField.setText("Tetraodon fluviatilis")
-            self.dialog.yearRangeBox.setChecked(True)
-            self.dialog.minYearEdit.setText("1970")
-            self.dialog.maxYearEdit.setText("1985")
+            self.dialog.minDateEdit.setText("1970")
+            self.dialog.maxDateEdit.setText("1985")
 
             self.launch_search_and_wait()
             current_layers = list(QgsMapLayerRegistry().instance().mapLayers().values())
@@ -240,50 +239,31 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
 
     def test_year_ui_basic_interactions(self):
         # Initially, checkox is unchecked and only the first field is available
-        self.assertFalse(self.dialog.yearRangeBox.isChecked())
-        self.assertTrue(self.dialog.minYearEdit.isEnabled())
-        self.assertFalse(self.dialog.maxYearEdit.isEnabled())
+        self.assertTrue(self.dialog.minDateEdit.isEnabled())
+        self.assertFalse(self.dialog.maxDateEdit.isEnabled())
 
         # Then we check the "range" box, and both fields are available
-        QtTest.QTest.mouseClick(self.dialog.yearRangeBox, QtCore.Qt.LeftButton)
-        self.assertTrue(self.dialog.yearRangeBox.isChecked())
-        self.assertTrue(self.dialog.minYearEdit.isEnabled())
-        self.assertTrue(self.dialog.maxYearEdit.isEnabled())
-
-        # If we uncheck again, bat to inital status
-        QtTest.QTest.mouseClick(self.dialog.yearRangeBox, QtCore.Qt.LeftButton)
-        self.assertFalse(self.dialog.yearRangeBox.isChecked())
-        self.assertTrue(self.dialog.minYearEdit.isEnabled())
-        self.assertFalse(self.dialog.maxYearEdit.isEnabled())
+        self.assertTrue(self.dialog.minDateEdit.isEnabled())
+        self.assertTrue(self.dialog.maxDateEdit.isEnabled())
 
     # Ensure that the range UI logic is not affected by searches (who disable fields)
     def test_year_ui_search(self):
         # Initially, checkox is unchecked and only the first field is available
-        self.assertFalse(self.dialog.yearRangeBox.isChecked())
-        self.assertTrue(self.dialog.minYearEdit.isEnabled())
-        self.assertFalse(self.dialog.maxYearEdit.isEnabled())
+        self.assertTrue(self.dialog.minDateEdit.isEnabled())
+        self.assertTrue(self.dialog.maxDateEdit.isEnabled())
 
         self.perform_noresults_search()
+
         # Ensure there's been no change
-
-        self.assertFalse(self.dialog.yearRangeBox.isChecked())
-        self.assertTrue(self.dialog.minYearEdit.isEnabled())
-        self.assertFalse(self.dialog.maxYearEdit.isEnabled())
-
-        # Now we check the box
-        QtTest.QTest.mouseClick(self.dialog.yearRangeBox, QtCore.Qt.LeftButton)
-        # Ensure click has been taken
-        self.assertTrue(self.dialog.yearRangeBox.isChecked())
-        self.assertTrue(self.dialog.minYearEdit.isEnabled())
-        self.assertTrue(self.dialog.maxYearEdit.isEnabled())
+        self.assertTrue(self.dialog.minDateEdit.isEnabled())
+        self.assertTrue(self.dialog.maxDateEdit.isEnabled())
 
         # Launch another search
         self.perform_noresults_search()
 
         # Ensure there's been no change
-        self.assertTrue(self.dialog.yearRangeBox.isChecked())
-        self.assertTrue(self.dialog.minYearEdit.isEnabled())
-        self.assertTrue(self.dialog.maxYearEdit.isEnabled())
+        self.assertTrue(self.dialog.minDateEdit.isEnabled())
+        self.assertTrue(self.dialog.maxDateEdit.isEnabled())
 
     def test_publishing_country_filter(self):
         with HTTMock(gbif_v1_response):

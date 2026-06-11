@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>418</width>
-    <height>443</height>
+    <height>453</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>400</y>
+     <y>410</y>
      <width>391</width>
      <height>31</height>
     </rect>
@@ -30,7 +30,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>360</y>
+     <y>370</y>
      <width>141</width>
      <height>31</height>
     </rect>
@@ -49,19 +49,6 @@
    </property>
    <property name="flat">
     <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="loadingLabel">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>520</y>
-     <width>391</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
    </property>
   </widget>
   <widget class="Line" name="line">
@@ -104,7 +91,7 @@
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>360</y>
+     <y>370</y>
      <width>111</width>
      <height>31</height>
     </rect>
@@ -138,10 +125,13 @@
        <x>10</x>
        <y>40</y>
        <width>371</width>
-       <height>81</height>
+       <height>90</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="scientificNameField"/>
+      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="scientificNameLabel">
         <property name="text">
@@ -156,11 +146,18 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="scientificNameField"/>
-      </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="taxonKeyField"/>
+       <widget class="QSpinBox" name="taxonKeyField">
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>999999999</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -195,10 +192,23 @@
        <x>10</x>
        <y>40</y>
        <width>371</width>
-       <height>181</height>
+       <height>184</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <widget class="QLabel" name="basisLabel">
+        <property name="text">
+         <string>Basis of record:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QgsCheckableComboBox" name="basisComboBox"/>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLineEdit" name="recordedByField"/>
+      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="recordedByLabel">
         <property name="text">
@@ -209,37 +219,6 @@
       <item row="1" column="2">
        <widget class="QLineEdit" name="catalogNumberField"/>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="yearLabel">
-        <property name="text">
-         <string>Year:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
-         <widget class="QCheckBox" name="yearRangeBox">
-          <property name="text">
-           <string>Use a year range</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLineEdit" name="minYearEdit"/>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="maxYearEdit">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLineEdit" name="recordedByField"/>
-      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="catalogNumberLabel">
         <property name="text">
@@ -247,15 +226,39 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="basisLabel">
+      <item row="3" column="0">
+       <widget class="QLabel" name="yearLabel">
         <property name="text">
-         <string>Basis of record:</string>
+         <string>Date:</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QComboBox" name="basisComboBox"/>
+      <item row="3" column="2">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QDateEdit" name="minDateEdit">
+          <property name="displayFormat">
+           <string>yyyy-MM-dd</string>
+          </property>
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QDateEdit" name="maxDateEdit">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="displayFormat">
+           <string>yyyy-MM-dd</string>
+          </property>
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -480,7 +483,27 @@
     </widget>
    </widget>
   </widget>
+  <widget class="QLabel" name="loadingLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>340</y>
+     <width>391</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsCheckableComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgscheckablecombobox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
  <buttongroups>

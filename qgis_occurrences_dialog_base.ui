@@ -178,7 +178,7 @@
       </font>
      </property>
      <property name="text">
-      <string>About occurence taxon:</string>
+      <string>About occurrence taxon:</string>
      </property>
     </widget>
    </widget>
@@ -279,7 +279,7 @@
       </font>
      </property>
      <property name="text">
-      <string>About occurence metadata:</string>
+      <string>About occurrence metadata:</string>
      </property>
     </widget>
    </widget>
@@ -304,7 +304,7 @@
       </font>
      </property>
      <property name="text">
-      <string>About occurence localisation:</string>
+      <string>About occurrence localisation:</string>
      </property>
     </widget>
     <widget class="QWidget" name="gridLayoutWidget_3">

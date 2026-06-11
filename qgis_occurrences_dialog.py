@@ -3,7 +3,7 @@
 /***************************************************************************
  GBIFOccurrencesDialog
                                  A QGIS plugin
- Retrieve data from GBIF webservices (occurences API) directly within QGIS.
+ Retrieve data from GBIF webservices (occurrences API) directly within QGIS.
                              -------------------
         begin                : 2014-11-18
         git sha              : $Format:%H$

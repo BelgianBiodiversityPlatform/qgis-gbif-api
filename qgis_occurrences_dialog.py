@@ -17,7 +17,7 @@ from builtins import str
 import os
 import sys
 
-
+from qgis.core import QgsPointXY
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QDialog
 from qgis.PyQt.QtCore import QDate, Qt
@@ -59,8 +59,12 @@ def _get_selected_country_code(combobox):
     return None
 
 
-def _get_val_or_range(min_field, max_field):
-    return "{min},{max}".format(min=str(min_field.date().year()), max=str(max_field.date().year()))
+def _get_val_or_range(min_field, max_field, error_message):
+    try:
+        max_field.date() >= min_field.date()
+        return "{min},{max}".format(min=str(min_field.date().toString('yyyy-MM-dd')), max=str(max_field.date().toString('yyyy-MM-dd')))
+    except GBIFApiError as e:
+        error_message("GBIF Error: " + str(e))
 
 
 class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
@@ -117,6 +121,11 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
 
         self.stop = False
         self.stopButton.clicked.connect(self.clicked_stop_button)
+
+    def closeEvent(self, event):
+        # Remove rectangle from map
+        self.erase_rubber_band()
+        self.rectangle = None
 
     def clicked_stop_button(self):
         self.stop = True
@@ -186,8 +195,8 @@ supported.""".format(
                 ),
                 "institutionCode": self.institutionCodeField.text(),
                 "collectionCode": self.collectionCodeField.text(),
-                "year": _get_val_or_range(
-                    self.minDateEdit, self.maxDateEdit
+                "eventDate": _get_val_or_range(
+                    self.minDateEdit, self.maxDateEdit, self.error_message
                 ),
                 "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
                 "datasetKey": self.datasetKeyField.text(),
@@ -204,13 +213,13 @@ supported.""".format(
                 ),
                 "institutionCode": self.institutionCodeField.text(),
                 "collectionCode": self.collectionCodeField.text(),
-                "year": _get_val_or_range(
-                    self.minDateEdit, self.maxDateEdit
+                "eventDate": _get_val_or_range(
+                    self.minDateEdit, self.maxDateEdit, self.error_message
                 ),
                 "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
                 "datasetKey": self.datasetKeyField.text(),
                 "recordedBy": self.recordedByField.text(),
-                "geometry": self.rectangle_tool.new_extent.asWktPolygon(),
+                "geometry": self.rectangle,
             }  # Hinzugefügt
 
     def localisation_selection_ui(self):
@@ -220,6 +229,7 @@ supported.""".format(
             self.bboxButton.setDisabled(True)
             # Remove rectangle from map
             self.erase_rubber_band()
+            self.rectangle = None
             # Remove the map tool to draw the rectangle
             self.canvas.unsetMapTool(self.rectangle_tool)
         else:
@@ -249,7 +259,7 @@ supported.""".format(
 
     def rectangle_drawned(self):
         # Launched every time a new extent is drawned.
-        self.rectangle = True
+        self.rectangle = self.rectangle_tool.new_extent.asWktPolygon()
         self.activate_window()
 
     def activate_window(self):
@@ -258,8 +268,6 @@ supported.""".format(
         self.activateWindow()
 
     def load_occurrences(self):
-        # Remove rectangle from map
-        self.erase_rubber_band()
         # Remove the map tool to draw the rectangle
         self.canvas.unsetMapTool(self.rectangle_tool)
         filters = self._ui_to_filters()

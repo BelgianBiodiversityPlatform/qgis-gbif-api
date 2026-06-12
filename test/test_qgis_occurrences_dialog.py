@@ -26,9 +26,9 @@ QGIS_APP = get_qgis_app()
 
 
 def close_all_messagebox():
-        for widget in QtGui.qApp.topLevelWidgets():
-            if isinstance(widget, QtGui.QMessageBox):
-                QtTest.QTest.keyClick(widget, QtCore.Qt.Key_Enter)
+    for widget in QtGui.qApp.topLevelWidgets():
+        if isinstance(widget, QtGui.QMessageBox):
+            QtTest.QTest.keyClick(widget, QtCore.Qt.Key_Enter)
 
 
 class GBIFOccurrencesDialogTest(unittest.TestCase):

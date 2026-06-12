@@ -127,6 +127,10 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.erase_rubber_band()
         self.rectangle = None
 
+        # TODO change to make, for now every time the window is closed
+        self.boundariesCheckBox.setChecked(True)
+        self.localisation_selection_ui()
+
     def clicked_stop_button(self):
         self.stop = True
 
@@ -255,7 +259,6 @@ supported.""".format(
     def set_rectangle_tool(self):
         self.rectangle_tool = RectangleDrawTool(self.project, self.canvas)
         self.rectangle_tool.signal.connect(self.rectangle_drawned)
-        self.bboxButton.setEnabled(True)
 
     def rectangle_drawned(self):
         # Launched every time a new extent is drawned.

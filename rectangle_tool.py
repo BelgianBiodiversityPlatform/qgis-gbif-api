@@ -72,18 +72,18 @@ class RectangleDrawTool(QgsMapTool):
         # Only a rectangle can be used
         if startPoint.x() == endPoint.x() or startPoint.y() == endPoint.y():
             return
+        else:
+            point1 = QgsPointXY(startPoint.x(), startPoint.y())
+            point2 = QgsPointXY(startPoint.x(), endPoint.y())
+            point3 = QgsPointXY(endPoint.x(), endPoint.y())
+            point4 = QgsPointXY(endPoint.x(), startPoint.y())
 
-        point1 = QgsPointXY(startPoint.x(), startPoint.y())
-        point2 = QgsPointXY(startPoint.x(), endPoint.y())
-        point3 = QgsPointXY(endPoint.x(), endPoint.y())
-        point4 = QgsPointXY(endPoint.x(), startPoint.y())
-
-        # Create the rectangle
-        self.rubber_band.addPoint(point1, False)
-        self.rubber_band.addPoint(point2, False)
-        self.rubber_band.addPoint(point3, False)
-        self.rubber_band.addPoint(point4, True)  # true to update canvas
-        self.rubber_band.show()
+            # Create the rectangle
+            self.rubber_band.addPoint(point1, False)
+            self.rubber_band.addPoint(point2, False)
+            self.rubber_band.addPoint(point3, False)
+            self.rubber_band.addPoint(point4, True)  # true to update canvas
+            self.rubber_band.show()
 
     def rectangle(self):
         # Only a rectangle is accepted

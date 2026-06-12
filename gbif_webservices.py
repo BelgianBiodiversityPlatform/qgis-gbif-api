@@ -42,8 +42,12 @@ def show_warning():
 def count_occurrences(filters):
     p = _finalize_filters(filters)
     p["offset"] = 0
+    headers = {
+        'User-Agent': 'QGIS Plugin GBIF Occurrences',
+        'From': 'https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api'
+    }
     try:
-        req = requests.get(OCCURRENCES_SEARCH_URL, params=p)
+        req = requests.get(OCCURRENCES_SEARCH_URL, params=p, headers=headers)
     except requests.exceptions.ConnectionError:
         raise ConnectionIssue
     else:
@@ -79,8 +83,12 @@ def get_occurrences_in_batches(filters):
 
     while not finished:
         p["offset"] = offset
+        headers = {
+            'User-Agent': 'QGIS Plugin GBIF Occurrences',
+            'From': 'https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api'
+        }
 
-        req = requests.get(OCCURRENCES_SEARCH_URL, params=p)
+        req = requests.get(OCCURRENCES_SEARCH_URL, params=p, headers=headers)
 
         resp = req.json()
 

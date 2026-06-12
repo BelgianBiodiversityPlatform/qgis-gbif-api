@@ -17,7 +17,7 @@ from builtins import str
 import os
 import sys
 
-
+from qgis.core import QgsGeometry, QgsCoordinateReferenceSystem
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QDialog
 from qgis.PyQt.QtCore import QDate, Qt
@@ -59,8 +59,12 @@ def _get_selected_country_code(combobox):
     return None
 
 
-def _get_val_or_range(min_field, max_field):
-    return "{min},{max}".format(min=str(min_field.date().year()), max=str(max_field.date().year()))
+def _get_val_or_range(min_field, max_field, error_message):
+    try:
+        max_field.date() >= min_field.date()
+        return "{min},{max}".format(min=str(min_field.date().toString('yyyy-MM-dd')), max=str(max_field.date().toString('yyyy-MM-dd')))
+    except GBIFApiError as e:
+        error_message("GBIF Error: " + str(e))
 
 
 class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
@@ -87,7 +91,6 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.project = project
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
-        self.rectangle = None
 
         self.setupUi(self)
         self.setFixedSize(self.size())
@@ -117,6 +120,14 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
 
         self.stop = False
         self.stopButton.clicked.connect(self.clicked_stop_button)
+
+    def showEvent(self, event):
+        self.recreate_rubber_band()
+
+    def closeEvent(self, event):
+        # Remove rectangle from map
+        self.erase_rubber_band()
+        self.canvas.unsetMapTool(self.rectangle_tool)
 
     def clicked_stop_button(self):
         self.stop = True
@@ -175,7 +186,7 @@ supported.""".format(
         QMessageBox.critical(self, "Error", msg)
 
     def _ui_to_filters(self):
-        if not self.rectangle:
+        if not self.bboxCheckBox.isChecked():
             return {
                 "scientificName": self.scientificNameField.text(),
                 "basisOfRecord": self.basisComboBox.checkedItemsData(),
@@ -186,32 +197,36 @@ supported.""".format(
                 ),
                 "institutionCode": self.institutionCodeField.text(),
                 "collectionCode": self.collectionCodeField.text(),
-                "year": _get_val_or_range(
-                    self.minDateEdit, self.maxDateEdit
+                "eventDate": _get_val_or_range(
+                    self.minDateEdit, self.maxDateEdit, self.error_message
                 ),
                 "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
                 "datasetKey": self.datasetKeyField.text(),
                 "recordedBy": self.recordedByField.text(),
                 "gadm_gid": self.gadmGidField.text(),
-            }  # Hinzugefügt
+            }
         else:
-            return {
-                "scientificName": self.scientificNameField.text(),
-                "basisOfRecord": self.basisComboBox.checkedItemsData(),
-                "catalogNumber": self.catalogNumberField.text(),
-                "publishingCountry": _get_selected_country_code(
-                    self.publishingCountryComboBox
-                ),
-                "institutionCode": self.institutionCodeField.text(),
-                "collectionCode": self.collectionCodeField.text(),
-                "year": _get_val_or_range(
-                    self.minDateEdit, self.maxDateEdit
-                ),
-                "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
-                "datasetKey": self.datasetKeyField.text(),
-                "recordedBy": self.recordedByField.text(),
-                "geometry": self.rectangle_tool.new_extent.asWktPolygon(),
-            }  # Hinzugefügt
+            try:
+                self.rectangle_tool.new_extent.asWktPolygon()
+                return {
+                    "scientificName": self.scientificNameField.text(),
+                    "basisOfRecord": self.basisComboBox.checkedItemsData(),
+                    "catalogNumber": self.catalogNumberField.text(),
+                    "publishingCountry": _get_selected_country_code(
+                        self.publishingCountryComboBox
+                    ),
+                    "institutionCode": self.institutionCodeField.text(),
+                    "collectionCode": self.collectionCodeField.text(),
+                    "eventDate": _get_val_or_range(
+                        self.minDateEdit, self.maxDateEdit, self.error_message
+                    ),
+                    "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
+                    "datasetKey": self.datasetKeyField.text(),
+                    "recordedBy": self.recordedByField.text(),
+                    "geometry": self.rectangle_tool.new_extent.asWktPolygon(),
+                }
+            except AttributeError:
+                self.error_message("GBIF Error: No bounding box drawned on map canvas, press the dedicated button.")
 
     def localisation_selection_ui(self):
         if self.boundariesCheckBox.isChecked():
@@ -228,11 +243,28 @@ supported.""".format(
             self.gadmGidField.setDisabled(True)
             self.gadmGidField.clear()
             self.bboxButton.setDisabled(False)
+            self.recreate_rubber_band()
 
     def erase_rubber_band(self):
         # Erase the drawn rectangle
         if self.rectangle_tool.rubber_band:
             self.rectangle_tool.rubber_band.reset()
+        else:
+            pass
+
+    def recreate_rubber_band(self):
+        if self.rectangle_tool.new_extent and self.rectangle_tool.rubber_band.numberOfVertices() == 0:
+            extent4326 = self.rectangle_tool.new_extent
+            if str(self.project.instance().crs().postgisSrid()) != str(4326):
+                geom = self.rectangle_tool.transform_geom(
+                    QgsGeometry().fromRect(extent4326),
+                    QgsCoordinateReferenceSystem("EPSG:" + str(4326)),
+                    self.project.instance().crs(),
+                )
+            else:
+                geom = QgsGeometry().fromRect(extent4326)
+            self.rectangle_tool.rubber_band.setToGeometry(geom)
+            self.rectangle_tool.rubber_band.show()
         else:
             pass
 
@@ -245,21 +277,18 @@ supported.""".format(
     def set_rectangle_tool(self):
         self.rectangle_tool = RectangleDrawTool(self.project, self.canvas)
         self.rectangle_tool.signal.connect(self.rectangle_drawned)
-        self.bboxButton.setEnabled(True)
 
     def rectangle_drawned(self):
         # Launched every time a new extent is drawned.
-        self.rectangle = True
         self.activate_window()
 
     def activate_window(self):
         # Put the dialog on top once the rectangle is drawn
         self.showNormal()
         self.activateWindow()
+        self.canvas.unsetMapTool(self.rectangle_tool)
 
     def load_occurrences(self):
-        # Remove rectangle from map
-        self.erase_rubber_band()
         # Remove the map tool to draw the rectangle
         self.canvas.unsetMapTool(self.rectangle_tool)
         filters = self._ui_to_filters()
@@ -270,6 +299,8 @@ supported.""".format(
             self.connection_error_message()
         except GBIFApiError as e:
             self.error_message("GBIF Error: " + str(e))
+        except AttributeError:
+            pass
         else:
             if count > MAX_TOTAL_RECORDS_GBIF:
                 self.dialog_too_many_results()

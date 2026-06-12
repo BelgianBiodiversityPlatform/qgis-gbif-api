@@ -3,7 +3,7 @@
 /***************************************************************************
  GBIFOccurrencesDialog
                                  A QGIS plugin
- Retrieve data from GBIF webservices (occurences API) directly within QGIS.
+ Retrieve data from GBIF webservices (occurrences API) directly within QGIS.
                              -------------------
         begin                : 2014-11-18
         git sha              : $Format:%H$
@@ -20,7 +20,7 @@ import sys
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QDialog
-from qgis.PyQt.QtCore import QDate
+from qgis.PyQt.QtCore import QDate, Qt
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
 from .gbif_webservices import (
@@ -59,11 +59,8 @@ def _get_selected_country_code(combobox):
     return None
 
 
-def _get_val_or_range(checkbox, min_field, max_field):
-    if checkbox.isChecked():
-        return "{min},{max}".format(min=min_field.text(), max=max_field.text())
-    else:
-        return min_field.text()
+def _get_val_or_range(min_field, max_field):
+    return "{min},{max}".format(min=str(min_field.date().year()), max=str(max_field.date().year()))
 
 
 class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
@@ -71,13 +68,14 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
     # Value: GBIF filter constants, see
     # http://gbif.github.io/gbif-api/apidocs/org/gbif/api/vocabulary/BasisOfRecord.html
     BOR = {
-        COMBOBOX_ALL_LABEL: None,
         "Fossilized specimen": "FOSSIL_SPECIMEN",
         "Human observation": "HUMAN_OBSERVATION",
         "Literature": "LITERATURE",
         "Living specimen": "LIVING_SPECIMEN",
         "Machine observation": "MACHINE_OBSERVATION",
+        "Material citation": "MATERIAL_CITATION",
         "Material sample": "MATERIAL_SAMPLE",
+        "Occurrence": "OCCURRENCE",
         "Observation": "OBSERVATION",
         "Preserved specimen": "PRESERVED_SPECIMEN",
         "Unknown": "UNKNOWN",
@@ -100,8 +98,19 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.set_rectangle_tool()
         # self.to_disable_during_load = ()  # Hinzugefügt
 
+        self.minDateEdit.setDate(QDate.currentDate())
+        self.maxDateEdit.setDate(QDate.currentDate())
+
+        self.taxonKeyField.setToolTip('This is the primary id used to identify a taxon, "0" means this filter is not used.<br><b>Must be an integer</b>')
+        self.basisComboBox.setToolTip('Basis of record is a Darwin Core term that refers to the specific nature of the record.')
+        self.catalogNumberField.setToolTip('An identifier of any form assigned by the source within a physical collection or digital dataset for the record which may not be unique,<br>but should be fairly unique in combination with the institution and collection code.')
+        self.recordedByField.setToolTip('The person who recorded the occurrence.')
+        self.gadmGidField.setToolTip('A GADM geographic identifier at any level,<br>for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1')
+        self.institutionCodeField.setToolTip('An identifier of any form assigned by the source to<br>identifythe institution the record belongs to.<br>Not guaranteed to be unique.')
+        self.collectionCodeField.setToolTip('An identifier of any form assigned by the source to<br>identify the physical collection or digital dataset uniquely<br>within the context of an institution.')
+        self.datasetKeyField.setToolTip('The occurrence dataset key (a UUID).')
+
         self.loadButton.clicked.connect(self.load_occurrences)
-        self.yearRangeBox.clicked.connect(self.year_range_ui)
         self.bboxCheckBox.clicked.connect(self.localisation_selection_ui)
         self.boundariesCheckBox.clicked.connect(self.localisation_selection_ui)
         self.bboxButton.clicked.connect(self.pointer)
@@ -119,8 +128,8 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         _populate_country_field(self.publishingCountryComboBox)
 
     def _populate_bor(self):
-        vals = list(self.BOR.keys())
-        self.basisComboBox.addItems(sorted(vals))
+        for elem in self.BOR:
+            self.basisComboBox.addItemWithCheckState(text=elem,state=Qt.CheckState.Checked,userData=self.BOR[elem])
 
     def _disable_controls(self):
         self.tabWidget.setDisabled(True)
@@ -144,7 +153,6 @@ supported.""".format(
         self.stopButton.setDisabled(True)
         self._enable_controls()
 
-        self.year_range_ui()  # We may have messed up with enabled status of year fields...
         self.localisation_selection_ui()
 
         # Theose have been affected during search
@@ -170,7 +178,7 @@ supported.""".format(
         if not self.rectangle:
             return {
                 "scientificName": self.scientificNameField.text(),
-                "basisOfRecord": self.BOR[self.basisComboBox.currentText()],
+                "basisOfRecord": self.basisComboBox.checkedItemsData(),
                 "country": _get_selected_country_code(self.countryComboBox),
                 "catalogNumber": self.catalogNumberField.text(),
                 "publishingCountry": _get_selected_country_code(
@@ -179,9 +187,9 @@ supported.""".format(
                 "institutionCode": self.institutionCodeField.text(),
                 "collectionCode": self.collectionCodeField.text(),
                 "year": _get_val_or_range(
-                    self.yearRangeBox, self.minYearEdit, self.maxYearEdit
+                    self.minDateEdit, self.maxDateEdit
                 ),
-                "taxonKey": self.taxonKeyField.text(),
+                "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
                 "datasetKey": self.datasetKeyField.text(),
                 "recordedBy": self.recordedByField.text(),
                 "gadm_gid": self.gadmGidField.text(),
@@ -189,7 +197,7 @@ supported.""".format(
         else:
             return {
                 "scientificName": self.scientificNameField.text(),
-                "basisOfRecord": self.BOR[self.basisComboBox.currentText()],
+                "basisOfRecord": self.basisComboBox.checkedItemsData(),
                 "catalogNumber": self.catalogNumberField.text(),
                 "publishingCountry": _get_selected_country_code(
                     self.publishingCountryComboBox
@@ -197,20 +205,13 @@ supported.""".format(
                 "institutionCode": self.institutionCodeField.text(),
                 "collectionCode": self.collectionCodeField.text(),
                 "year": _get_val_or_range(
-                    self.yearRangeBox, self.minYearEdit, self.maxYearEdit
+                    self.minDateEdit, self.maxDateEdit
                 ),
-                "taxonKey": self.taxonKeyField.text(),
+                "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
                 "datasetKey": self.datasetKeyField.text(),
                 "recordedBy": self.recordedByField.text(),
                 "geometry": self.rectangle_tool.new_extent.asWktPolygon(),
             }  # Hinzugefügt
-
-    def year_range_ui(self):
-        if self.yearRangeBox.isChecked():
-            self.maxYearEdit.setDisabled(False)
-            self.maxYearEdit.setText(str(QDate.currentDate().year()))
-        else:
-            self.maxYearEdit.setDisabled(True)
 
     def localisation_selection_ui(self):
         if self.boundariesCheckBox.isChecked():

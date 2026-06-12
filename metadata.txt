@@ -9,7 +9,7 @@
 [general]
 name=GBIF Occurrences
 qgisMinimumVersion=3.0
-description=Retrieve data from GBIF webservices (occurences API) directly within QGIS.
+description=Retrieve data from GBIF webservices (occurrences API) directly within QGIS.
 version=0.3.4
 author=Nicolas Noé - Belgian Biodiversity Platform
 email=nicolas@niconoe.eu

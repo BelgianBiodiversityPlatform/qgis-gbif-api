@@ -101,21 +101,17 @@ class Ui_GBIFOccurrencesDialogBase(object):
 
         self.gridLayout_2 = QGridLayout()
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.yearRangeBox = QCheckBox(self.layoutWidget)
-        self.yearRangeBox.setObjectName(u"yearRangeBox")
 
-        self.gridLayout_2.addWidget(self.yearRangeBox, 0, 0, 1, 1)
 
-        self.minYearEdit = QLineEdit(self.layoutWidget)
-        self.minYearEdit.setObjectName(u"minYearEdit")
+        self.minDateEdit = QLineEdit(self.layoutWidget)
+        self.minDateEdit.setObjectName(u"minDateEdit")
 
-        self.gridLayout_2.addWidget(self.minYearEdit, 1, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.minDateEdit, 1, 0, 1, 1)
 
-        self.maxYearEdit = QLineEdit(self.layoutWidget)
-        self.maxYearEdit.setObjectName(u"maxYearEdit")
-        self.maxYearEdit.setEnabled(False)
+        self.maxDateEdit = QLineEdit(self.layoutWidget)
+        self.maxDateEdit.setObjectName(u"maxDateEdit")
 
-        self.gridLayout_2.addWidget(self.maxYearEdit, 1, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.maxDateEdit, 1, 1, 1, 1)
 
 
         self.gridLayout.addLayout(self.gridLayout_2, 8, 1, 1, 1)
@@ -241,7 +237,6 @@ class Ui_GBIFOccurrencesDialogBase(object):
         self.label_5.setText(QCoreApplication.translate("GBIFOccurrencesDialogBase", u"Catalog Number:", None))
         self.label_8.setText(QCoreApplication.translate("GBIFOccurrencesDialogBase", u"Collection Code:", None))
         self.label_12.setText(QCoreApplication.translate("GBIFOccurrencesDialogBase", u"Recorded by:", None))
-        self.yearRangeBox.setText(QCoreApplication.translate("GBIFOccurrencesDialogBase", u"Use a year range", None))
         self.label.setText(QCoreApplication.translate("GBIFOccurrencesDialogBase", u"Scientific name:", None))
         self.label_9.setText(QCoreApplication.translate("GBIFOccurrencesDialogBase", u"Year:", None))
         self.label_15.setText(QCoreApplication.translate("GBIFOccurrencesDialogBase", u"About data source:", None))

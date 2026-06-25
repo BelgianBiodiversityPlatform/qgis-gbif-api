@@ -75,7 +75,10 @@ def add_gbif_occ_to_layer(occurrences, layer):
         feat.setFields(myFields)
 
         for d in attrs:
-            feat.setAttribute(d["attr"], d["val"])
+            try:
+                feat.setAttribute(d["attr"], d["val"].strip('"'))
+            except AttributeError:
+                feat.setAttribute(d["attr"], d["val"])
 
         feat.setGeometry(
             QgsGeometry.fromPointXY(

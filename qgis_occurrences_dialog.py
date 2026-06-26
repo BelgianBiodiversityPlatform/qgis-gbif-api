@@ -12,10 +12,9 @@
  ***************************************************************************/
 
 """
-
-from builtins import str
 import os
-import sys
+from builtins import str
+from iso3166 import countries
 
 from qgis.core import QgsGeometry, QgsCoordinateReferenceSystem
 from qgis.PyQt import uic
@@ -32,10 +31,6 @@ from .gbif_webservices import (
 )
 from .rectangle_tool import RectangleDrawTool
 
-parent_dir = os.path.abspath(os.path.dirname(__file__))
-vendor_dir = os.path.join(parent_dir, "vendor")
-sys.path.append(vendor_dir)
-from iso3166 import countries
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(os.path.dirname(__file__), "qgis_occurrences_dialog_base.ui")

@@ -118,6 +118,8 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.boundariesCheckBox.clicked.connect(self.localisation_selection_ui)
         self.bboxButton.clicked.connect(self.pointer)
 
+        self.dateCheckBox.clicked.connect(self.date_selection_ui)
+
         self.stop = False
         self.stopButton.clicked.connect(self.clicked_stop_button)
 
@@ -150,10 +152,10 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
 
     def dialog_too_many_results(self):
         msg = """The query returned more than {max} records.\
-Due to limitations in the GBIF infrastructure, very large queries are currently not \
-supported.""".format(
-            max=MAX_TOTAL_RECORDS_GBIF
-        )
+            Due to limitations in the GBIF infrastructure, very large queries are currently not \
+            supported.""".format(
+                        max=MAX_TOTAL_RECORDS_GBIF
+                    )
         QMessageBox.information(self, "Error", msg)
 
     def before_search_ui(self):
@@ -186,6 +188,12 @@ supported.""".format(
         QMessageBox.critical(self, "Error", msg)
 
     def _ui_to_filters(self):
+        if self.dateCheckBox.isChecked():
+            event_date = _get_val_or_range(
+                self.minDateEdit, self.maxDateEdit, self.error_message
+                )
+        else:
+            event_date = ""
         if not self.bboxCheckBox.isChecked():
             return {
                 "scientificName": self.scientificNameField.text(),
@@ -197,9 +205,7 @@ supported.""".format(
                 ),
                 "institutionCode": self.institutionCodeField.text(),
                 "collectionCode": self.collectionCodeField.text(),
-                "eventDate": _get_val_or_range(
-                    self.minDateEdit, self.maxDateEdit, self.error_message
-                ),
+                "eventDate": event_date,
                 "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
                 "datasetKey": self.datasetKeyField.text(),
                 "recordedBy": self.recordedByField.text(),
@@ -217,9 +223,7 @@ supported.""".format(
                     ),
                     "institutionCode": self.institutionCodeField.text(),
                     "collectionCode": self.collectionCodeField.text(),
-                    "eventDate": _get_val_or_range(
-                        self.minDateEdit, self.maxDateEdit, self.error_message
-                    ),
+                    "eventDate": event_date,
                     "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
                     "datasetKey": self.datasetKeyField.text(),
                     "recordedBy": self.recordedByField.text(),
@@ -244,6 +248,14 @@ supported.""".format(
             self.gadmGidField.clear()
             self.bboxButton.setDisabled(False)
             self.recreate_rubber_band()
+
+    def date_selection_ui(self):
+        if self.dateCheckBox.isChecked():
+            self.minDateEdit.setDisabled(False)
+            self.maxDateEdit.setDisabled(False)
+        else:
+            self.minDateEdit.setDisabled(True)
+            self.maxDateEdit.setDisabled(True)
 
     def erase_rubber_band(self):
         # Erase the drawn rectangle

@@ -8,7 +8,7 @@
 
 [general]
 name=GBIF Occurrences
-qgisMinimumVersion=3.38
+qgisMinimumVersion=3.16
 qgisMaximumVersion=4.99
 description=Retrieve data from GBIF webservices (occurrences API) directly within QGIS.
 version=0.4.0

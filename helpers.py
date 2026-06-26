@@ -7,7 +7,7 @@ from qgis.core import (
     QgsPointXY,
     QgsField,
 )
-from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtCore import QMetaType
 
 
 def create_and_add_layer(project, name, epsg_id=4326):
@@ -63,7 +63,7 @@ def add_gbif_occ_to_layer(occurrences, layer):
             # Add a layer attribute for each JSON fields
             # (if not already encountered)
             if field_index == -1:
-                dp.addAttributes([QgsField(k, QVariant.String)])
+                dp.addAttributes([QgsField(k, QMetaType.QString)])
 
             attrs.append({"attr": k, "val": _get_field_value(o, k)})
 

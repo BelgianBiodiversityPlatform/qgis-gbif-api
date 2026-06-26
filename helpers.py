@@ -63,7 +63,7 @@ def add_gbif_occ_to_layer(occurrences, layer):
             # Add a layer attribute for each JSON fields
             # (if not already encountered)
             if field_index == -1:
-                dp.addAttributes([QgsField(k, QMetaType.QString)])
+                dp.addAttributes([QgsField(k, QMetaType(10))])
 
             attrs.append({"attr": k, "val": _get_field_value(o, k)})
 

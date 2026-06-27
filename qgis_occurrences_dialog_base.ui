@@ -303,7 +303,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>399</width>
+         <width>400</width>
          <height>220</height>
         </rect>
        </property>
@@ -392,6 +392,14 @@
        </widget>
       </widget>
       <widget class="QWidget" name="page_3">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>400</width>
+         <height>220</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Localisation:</string>
        </attribute>
@@ -433,6 +441,9 @@
            <property name="checked">
             <bool>true</bool>
            </property>
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
           </widget>
          </item>
          <item row="2" column="0">
@@ -469,6 +480,9 @@
            <property name="checked">
             <bool>false</bool>
            </property>
+           <attribute name="buttonGroup">
+            <string notr="true">buttonGroup</string>
+           </attribute>
           </widget>
          </item>
          <item row="3" column="0">
@@ -495,6 +509,14 @@
        </widget>
       </widget>
       <widget class="QWidget" name="page_4">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>400</width>
+         <height>220</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Data Source:</string>
        </attribute>
@@ -610,6 +632,14 @@
        </widget>
       </widget>
       <widget class="QWidget" name="page_5">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>400</width>
+         <height>220</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string/>
        </attribute>
@@ -733,6 +763,6 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="localisationButtonGroup"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

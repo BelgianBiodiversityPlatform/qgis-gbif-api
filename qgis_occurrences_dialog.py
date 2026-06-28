@@ -15,10 +15,18 @@
 import os
 from builtins import str
 
-from qgis.core import QgsGeometry, QgsCoordinateReferenceSystem, QgsApplication
+from qgis.core import (
+    Qgis,
+    QgsGeometry,
+    QgsCoordinateReferenceSystem,
+    QgsApplication,
+)
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QDialog
-from qgis.PyQt.QtCore import QDate, Qt, QIODevice, QDir, QFile
+from qgis.PyQt.QtCore import QDate, Qt, QIODevice, QDir, QFile, QByteArray
+
+if Qgis.QGIS_VERSION_INT >= 40000:
+    from qgis.PyQt.QtCore import QIODeviceBase
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
 from .gbif_webservices import (
@@ -44,7 +52,11 @@ def get_countries():
 
     path = QDir(QgsApplication.metadataPath()).absoluteFilePath(u"country_code_ISO_3166.csv")
     file = QFile(path)
-    if not file.open(QIODevice.ReadOnly):
+    if Qgis.QGIS_VERSION_INT >= 40000:
+        open_mode = QIODeviceBase.OpenModeFlag.ReadOnly
+    else:
+        open_mode = open_mode = QIODevice.ReadOnly
+    if not file.open(open_mode):
         print(u"Error while opening the CSV file: {}, {} ".format(path, file.errorString()))
         return countries
 
@@ -52,7 +64,7 @@ def get_countries():
     while not file.atEnd():
         country_attr = {}
         line = file.readLine()
-        items = line.split(',')
+        items = line.split(QByteArray(','.encode()))
         country_attr["name"] = items[0].trimmed().data().decode()
         country_attr["alpha2"] = items[1].trimmed().data().decode()
         country_attr["alpha3"] = items[2].trimmed().data().decode()

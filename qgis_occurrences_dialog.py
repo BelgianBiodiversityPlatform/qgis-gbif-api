@@ -14,12 +14,11 @@
 """
 import os
 from builtins import str
-from iso3166 import countries
 
-from qgis.core import QgsGeometry, QgsCoordinateReferenceSystem
+from qgis.core import QgsGeometry, QgsCoordinateReferenceSystem, QgsApplication
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QDialog
-from qgis.PyQt.QtCore import QDate, Qt
+from qgis.PyQt.QtCore import QDate, Qt, QIODevice, QDir, QFile
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
 from .gbif_webservices import (
@@ -40,16 +39,41 @@ FORM_CLASS, _ = uic.loadUiType(
 COMBOBOX_ALL_LABEL = "-- All --"
 
 
+def get_countries():
+    countries = []
+
+    path = QDir(QgsApplication.metadataPath()).absoluteFilePath(u"country_code_ISO_3166.csv")
+    file = QFile(path)
+    if not file.open(QIODevice.ReadOnly):
+        print(u"Error while opening the CSV file: {}, {} ".format(path, file.errorString()))
+        return countries
+
+    file.readLine()
+    while not file.atEnd():
+        country_attr = {}
+        line = file.readLine()
+        items = line.split(',')
+        country_attr["name"] = items[0].trimmed().data().decode()
+        country_attr["alpha2"] = items[1].trimmed().data().decode()
+        country_attr["alpha3"] = items[2].trimmed().data().decode()
+        countries.append(country_attr)
+    file.close()
+    return countries
+
+
+countries = get_countries()
+
+
 def _populate_country_field(combobox):
     combobox.addItem(COMBOBOX_ALL_LABEL)
     for c in countries:
-        combobox.addItem(c.name)
+        combobox.addItem(c["name"])
 
 
 def _get_selected_country_code(combobox):
     for c in countries:
-        if combobox.currentText() == c.name:
-            return c.alpha2
+        if combobox.currentText() == c["name"]:
+            return c["alpha2"]
     # Not found
     return None
 

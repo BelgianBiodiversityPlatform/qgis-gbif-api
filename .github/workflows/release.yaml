@@ -1,0 +1,38 @@
+name: Release plugin
+
+# Cut a release by pushing a bare version tag, e.g.:
+#   git tag 0.4.0 && git push origin 0.4.0
+# Do NOT prefix the tag with "v": qgis-plugin-ci writes the tag verbatim into
+# metadata.txt as the plugin version, and we want "0.4.0", not "v0.4.0".
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+# Needed so the automatic GITHUB_TOKEN can create the GitHub release.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history, needed for changelog generation)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install qgis-plugin-ci
+        run: pip install qgis-plugin-ci
+
+      - name: Build, create GitHub release, and publish to plugins.qgis.org
+        run: >-
+          qgis-plugin-ci release ${{ github.ref_name }}
+          --github-token ${{ secrets.GITHUB_TOKEN }}
+          --osgeo-username ${{ secrets.OSGEO_USERNAME }}
+          --osgeo-password ${{ secrets.OSGEO_PASSWORD }}

@@ -17,8 +17,6 @@ from qgis.core import QgsProject
 from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon
-# Initialize Qt resources from file resources.py
-from . import resources_rc
 # Import the code for the dialog
 from .qgis_occurrences_dialog import GBIFOccurrencesDialog
 import os.path
@@ -156,7 +154,7 @@ class GBIFOccurrences(object):
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/GBIFOccurrences/icon.png'
+        icon_path = os.path.join(self.plugin_dir, 'icon.png')
         self.add_action(
             icon_path,
             text=self.tr(u'Load GBIF occurrences'),

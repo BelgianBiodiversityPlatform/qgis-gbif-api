@@ -12,15 +12,21 @@
  ***************************************************************************/
 
 """
-
-from builtins import str
 import os
-import sys
+from builtins import str
 
-from qgis.core import QgsGeometry, QgsCoordinateReferenceSystem
+from qgis.core import (
+    Qgis,
+    QgsGeometry,
+    QgsCoordinateReferenceSystem,
+    QgsApplication,
+)
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QDialog
-from qgis.PyQt.QtCore import QDate, Qt
+from qgis.PyQt.QtCore import QDate, Qt, QIODevice, QDir, QFile, QByteArray
+
+if Qgis.QGIS_VERSION_INT >= 40000:
+    from qgis.PyQt.QtCore import QIODeviceBase
 
 from .helpers import create_and_add_layer, add_gbif_occ_to_layer
 from .gbif_webservices import (
@@ -32,10 +38,6 @@ from .gbif_webservices import (
 )
 from .rectangle_tool import RectangleDrawTool
 
-parent_dir = os.path.abspath(os.path.dirname(__file__))
-vendor_dir = os.path.join(parent_dir, "vendor")
-sys.path.append(vendor_dir)
-from iso3166 import countries
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(os.path.dirname(__file__), "qgis_occurrences_dialog_base.ui")
@@ -45,16 +47,45 @@ FORM_CLASS, _ = uic.loadUiType(
 COMBOBOX_ALL_LABEL = "-- All --"
 
 
+def get_countries():
+    countries = []
+
+    path = QDir(QgsApplication.metadataPath()).absoluteFilePath(u"country_code_ISO_3166.csv")
+    file = QFile(path)
+    if Qgis.QGIS_VERSION_INT >= 40000:
+        open_mode = QIODeviceBase.OpenModeFlag.ReadOnly
+    else:
+        open_mode = open_mode = QIODevice.ReadOnly
+    if not file.open(open_mode):
+        print(u"Error while opening the CSV file: {}, {} ".format(path, file.errorString()))
+        return countries
+
+    file.readLine()
+    while not file.atEnd():
+        country_attr = {}
+        line = file.readLine()
+        items = line.split(QByteArray(','.encode()))
+        country_attr["name"] = items[0].trimmed().data().decode()
+        country_attr["alpha2"] = items[1].trimmed().data().decode()
+        country_attr["alpha3"] = items[2].trimmed().data().decode()
+        countries.append(country_attr)
+    file.close()
+    return countries
+
+
+countries = get_countries()
+
+
 def _populate_country_field(combobox):
     combobox.addItem(COMBOBOX_ALL_LABEL)
     for c in countries:
-        combobox.addItem(c.name)
+        combobox.addItem(c["name"])
 
 
 def _get_selected_country_code(combobox):
     for c in countries:
-        if combobox.currentText() == c.name:
-            return c.alpha2
+        if combobox.currentText() == c["name"]:
+            return c["alpha2"]
     # Not found
     return None
 

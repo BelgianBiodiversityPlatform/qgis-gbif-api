@@ -1,11 +1,5 @@
-import os
-import sys
 from urllib.parse import urljoin
 from qgis.PyQt.QtWidgets import QMessageBox
-
-parent_dir = os.path.abspath(os.path.dirname(__file__))
-vendor_dir = os.path.join(parent_dir, "vendor")
-sys.path.append(vendor_dir)
 import requests
 
 ENDPOINT = "http://api.gbif.org/v1/"

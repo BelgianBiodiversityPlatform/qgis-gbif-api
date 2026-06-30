@@ -145,10 +145,10 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             self.basisComboBox.addItemWithCheckState(text=elem,state=Qt.CheckState.Checked,userData=self.BOR[elem])
 
     def _disable_controls(self):
-        self.tabWidget.setDisabled(True)
+        self.toolBox.setDisabled(True)
 
     def _enable_controls(self):
-        self.tabWidget.setDisabled(False)
+        self.toolBox.setDisabled(False)
 
     def dialog_too_many_results(self):
         msg = """The query returned more than {max} records.\

@@ -10,8 +10,6 @@ Tutorial
 Installation
 ------------
 
-**Note: the plugin has been re-submitted to the QGIS plugins repository. If you used a previous version, you will need to uninstall it and reinstall it completely (update won't work).**
-
 1. Launch QGIS
 2. In the main menu, go to `Plugins` -> `Manage and install plugins...`
 3. Go to `Settings`and make sure `Show also experimental plugins` is checked
@@ -23,7 +21,7 @@ Installation
 Use
 ---
 
-1. Open the extension window from the main menu: Vector -> GBIF Occurrences -> Load GBIF Occurrences (alternatively, use the ![Plugin icon](./icon.png)icon in the toolbar).
+1. Open the extension window from the main menu: Vector -> GBIF Occurrences -> Load GBIF Occurrences (alternatively, use the ![Plugin icon](./GBIFOccurrences/icon.png) icon in the toolbar).
 
 2. Fill in the details about yout search (for example: *betta splendens* occurring in Thailand) and click "Load occurrences".
 
@@ -34,10 +32,21 @@ Use
 ![Occurrences in QGIS](./screenshot2.png)
 ![Attributes table](./screenshot3.png)
 
+Changelog
+---------
+Since July 2024 there has not been any development on this plugin. Yet it was still one of the most used QGIS plugin for biodiversity data.
+Another developper joined the development 2 years after the last commit to update the plugin for newer version and add some features :
+
+- Add more filters (extent, date not only based on year but on day and month)
+- Improve UI (quick and advanced search, use appropriate QWidget, add tooltip)
+
 Limitations
 -----------
 
 - More filters should be implemented.
+- The plugin is not yet compliant with GBIF and QGIS recommendation (data citation, limit usage of external libs like requests)
+- No translation
+- Documentation limited
 - Due to limitations of the GBIF API, searches are limited to 200,000 records.
 
 Status

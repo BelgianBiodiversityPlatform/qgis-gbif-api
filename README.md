@@ -32,14 +32,6 @@ Use
 ![Occurrences in QGIS](./screenshot2.png)
 ![Attributes table](./screenshot3.png)
 
-Changelog
----------
-Since July 2024 there has not been any development on this plugin. Yet it was still one of the most used QGIS plugin for biodiversity data.
-Another developper joined the development 2 years after the last commit to update the plugin for newer version and add some features :
-
-- Add more filters (extent, date not only based on year but on day and month)
-- Improve UI (quick and advanced search, use appropriate QWidget, add tooltip)
-
 Limitations
 -----------
 
@@ -49,10 +41,21 @@ Limitations
 - Documentation limited
 - Due to limitations of the GBIF API, searches are limited to 200,000 records.
 
+Changelog
+=========
+Since July 2024 there has not been any development on this plugin. Yet it was still one of the most used QGIS plugin for biodiversity data.
+Another developper joined the development 2 years after the last commit to update the plugin for newer version and add some features :
+
+- Add more filters (extent, date not only based on year but on day and month)
+- Improve UI (quick and advanced search, use appropriate QWidget, add tooltip)
+
 Status
 ======
 
 First release ok! Feel free to report any bug or feature requests (or even better, contribute to improve it!)
+
+We are now working on a new release compatible with QGIS4.
+A roadmap is coming soon, to guide the future development and the potential contributors.
 
 Running tests:
 ==============

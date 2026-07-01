@@ -24,13 +24,15 @@ def _finalize_filters(filters):
 
 def show_warning():
     msg_box = QMessageBox()
-    msg_box.setIcon(QMessageBox.Warning)
+    msg_box.setIcon(QMessageBox.Icon.Warning)
     msg_box.setText(
         f"The number of results is very large (> {WARNING_THRESHOLD}). Do you want to continue?"
     )
     msg_box.setWindowTitle("Warning")
-    msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-    return msg_box.exec_() == QMessageBox.Yes
+    msg_box.setStandardButtons(
+        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+    )
+    return msg_box.exec() == QMessageBox.StandardButton.Yes
 
 
 def count_occurrences(filters):
@@ -52,14 +54,16 @@ def count_occurrences(filters):
         ):  # When GBIF throws an error message, it's plain text (not JSON)
             raise GBIFApiError(req.text)
 
-        try:
-            c = resp["count"]
-        except KeyError:
-            # No "count" field when no results
-            if resp["endOfRecords"] and (len(resp["results"]) == 0):
+        c = resp.get("count")
+        if c is None:
+            # GBIF omits "count" only when the query returns no results at all.
+            if resp.get("endOfRecords") and not resp.get("results"):
                 c = 0
-    print(f"Fertiger Pfad: {OCCURRENCES_SEARCH_URL}")
-    print(f"Parameters: {p}")
+            else:
+                raise GBIFApiError(
+                    f"Unexpected GBIF response (missing 'count'): {req.text}"
+                )
+
     return c
 
 

@@ -1,0 +1,18 @@
+# This pyproject.toml exists ONLY to manage the local development *tooling*
+# (qgis-plugin-ci, etc.) via uv. The plugin itself is NOT a pip package: it runs
+# inside QGIS's own bundled Python, which already provides `qgis` and `PyQt`.
+# Never add `qgis` here - it is not pip-installable and is supplied by QGIS.
+[project]
+name = "qgis-gbif-api-dev"
+version = "0.0.0"
+description = "Development tooling for the GBIF Occurrences QGIS plugin"
+requires-python = ">=3.12"
+
+[dependency-groups]
+dev = [
+    "qgis-plugin-ci",
+]
+
+# Tell uv this project is tooling-only; do not try to build/install it as a package.
+[tool.uv]
+package = false

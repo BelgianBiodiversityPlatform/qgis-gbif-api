@@ -1,5 +1,9 @@
 *.pyc
 .coverage
-.noseids
-/i18n/af.qm
 .DS_Store
+
+# uv-managed local tooling environment (see CONTRIBUTING.md). uv.lock IS tracked.
+.venv/
+
+# Locally built plugin packages
+*.zip

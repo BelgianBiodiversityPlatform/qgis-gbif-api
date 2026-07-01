@@ -1,0 +1,12 @@
+# Configuration for qgis-plugin-ci (https://github.com/opengisch/qgis-plugin-ci)
+# Used to package and publish the plugin. See RELEASING.md for the full process.
+
+# Directory holding the plugin source (the folder that contains metadata.txt).
+# Its name is also used as the name of the packaged zip and of the installed
+# plugin folder in QGIS, so it must stay "GBIFOccurrences" to keep existing
+# installations working across upgrades.
+plugin_path: GBIFOccurrences
+
+# Repository coordinates, used when creating the GitHub release.
+github_organization_slug: BelgianBiodiversityPlatform
+project_slug: qgis-gbif-api

@@ -173,5 +173,18 @@ class GBIFOccurrences(object):
         """Run method that performs all the real work"""
         # show the dialog
         self.dlg.show()
+        # If there is no layers, an OSM layer is added
+        # to simplify the rectangle drawing
+        if len(self.project.mapLayers()) == 0:
+
+            # Type of WMTS, osm use specs, url and name
+            osm_spec = "tilePixelRatio=1&zmax=19&zmin=0&"
+            wms_type = "xyz"
+            url = "http://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            name = "OpenStreetMap"
+            uri = osm_spec + "type=" + wms_type + "&url=" + url
+
+            # Add WMTS to the QgsProject
+            self.iface.addRasterLayer(uri, name, "wms")
         # Run the dialog event loop
         self.dlg.exec()

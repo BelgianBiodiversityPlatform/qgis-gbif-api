@@ -65,9 +65,17 @@ def get_countries():
         country_attr = {}
         line = file.readLine()
         items = line.split(QByteArray(','.encode()))
-        country_attr["name"] = items[0].trimmed().data().decode()
-        country_attr["alpha2"] = items[1].trimmed().data().decode()
-        country_attr["alpha3"] = items[2].trimmed().data().decode()
+        if len(items) > 9:
+            name = items[0].trimmed().data().decode() + ' ' + items[1].trimmed().data().decode()
+            alpha2 = items[2].trimmed().data().decode()
+            alpha3 = items[3].trimmed().data().decode()
+        else:
+            name = items[0].trimmed().data().decode()
+            alpha2 = items[1].trimmed().data().decode()
+            alpha3 = items[2].trimmed().data().decode()
+        country_attr["name"] = name.strip('"')
+        country_attr["alpha2"] = alpha2
+        country_attr["alpha3"] = alpha3
         countries.append(country_attr)
     file.close()
     return countries

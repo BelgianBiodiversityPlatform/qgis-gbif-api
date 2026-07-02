@@ -1,15 +1,18 @@
 name: Release plugin
 
-# Cut a release by pushing a bare version tag, e.g.:
-#   git tag 0.4.0 && git push origin 0.4.0
+# Cut a release by publishing a GitHub Release whose tag is a bare version
+# number, e.g. `gh release create 0.4.1 --generate-notes` (see RELEASING.md).
+# qgis-plugin-ci does NOT create the GitHub Release; it attaches the built zip
+# to the release that publishing this event has already created, so we must
+# trigger on the release, not on a bare tag push.
 # Do NOT prefix the tag with "v": qgis-plugin-ci writes the tag verbatim into
-# metadata.txt as the plugin version, and we want "0.4.0", not "v0.4.0".
+# metadata.txt as the plugin version, and we want "0.4.1", not "v0.4.1".
 on:
-  push:
-    tags:
-      - "*.*.*"
+  release:
+    types: [published]
 
-# Needed so the automatic GITHUB_TOKEN can create the GitHub release.
+# Needed so the automatic GITHUB_TOKEN can attach the plugin zip as an asset to
+# the published GitHub Release.
 permissions:
   contents: write
 

@@ -11,7 +11,7 @@ name=GBIF Occurrences
 qgisMinimumVersion=3.16
 qgisMaximumVersion=4.99
 description=Retrieve data from GBIF webservices (occurrences API) directly within QGIS.
-version=0.4.0
+version=0.4.1
 author=Nicolas Noé (The Binary Forest), Jules Grillot
 email=nicolas@niconoe.eu
 about=GBIF Occurrences is a QGIS plugin to directly download and import GBIF occurrence data from the application interface.
@@ -22,7 +22,8 @@ about=GBIF Occurrences is a QGIS plugin to directly download and import GBIF occ
 
 # Uncomment the following line and add your changelog:
 changelog=
-    0.4.0 - Updated for QGIS4, improve UI (organise, tooltip), add location & date filter possibility (extent)
+    0.4.1 - Updated for QGIS4, improve UI (organise, tooltip), add location & date filter possibility (extent)
+    0.4.0 - Botched release process, unavailable
     0.3.4 - Marked as non-experimental, fix LICENSE file name
     0.3.3 - Fixed a bug with recent QGIS version, thanks @hypsug0
     0.3.0 - Support for QGIS 3

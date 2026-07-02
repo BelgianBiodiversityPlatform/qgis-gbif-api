@@ -12,9 +12,8 @@ Installation
 
 1. Launch QGIS
 2. In the main menu, go to `Plugins` -> `Manage and install plugins...`
-3. Go to `Settings`and make sure `Show also experimental plugins` is checked
-4. Go back to the `All` tab and search for `GBIF occurrences`
-5. Select the plugin and click on `Install plugin`
+3. In the `All` tab, search for `GBIF occurrences`
+4. Select the plugin and click on `Install plugin`
 
 ![Plugin install window](./screenshot_install.png)
 
@@ -44,7 +43,7 @@ Limitations
 Changelog
 =========
 Since July 2024 there has not been any development on this plugin. Yet it was still one of the most used QGIS plugin for biodiversity data.
-Another developper joined the development 2 years after the last commit to update the plugin for newer version and add some features :
+Another developer, Jules Grillot, joined the development 2 years after the last commit to update the plugin for newer version and add some features :
 
 - Add more filters (extent, date not only based on year but on day and month)
 - Improve UI (quick and advanced search, use appropriate QWidget, add tooltip)
@@ -60,16 +59,26 @@ A roadmap is coming soon, to guide the future development and the potential cont
 Running tests:
 ==============
 
-$ make test
+The `test/` directory holds legacy `unittest` suites that mock the GBIF API with
+`httmock`. They must run under QGIS's own bundled Python, which provides the
+`qgis`, `PyQt` and `QtTest` modules (there is no `make test` target).
 
-(Currently it is difficult to run tests on Mac OS X since Kyngchaos QGIS packages embed PyQt without the QtTest module.)
+Running the tests on macOS is currently difficult, because the Kyngchaos QGIS
+packages embed PyQt without the `QtTest` module.
 
 How-to release:
 ===============
 
-- Bump version number and update changelog in metadata.txt.
-- Submit the plugin to the QGIS plugins repository, after renaming the directory to `qgisgbifapi`.
-- create a git tag and push it to github:
+Releases are automated with [qgis-plugin-ci](https://github.com/opengisch/qgis-plugin-ci)
+and GitHub Actions. In short:
 
-    $ git tag v0.1-in-plugin-repo
-    $ git push origin --tags
+- Bump `version=` and update the `changelog=` block in
+  `GBIFOccurrences/metadata.txt`, then merge to `master`.
+- Push a **bare** version tag (no `v` prefix), matching the version you set:
+
+    $ git tag 0.4.1
+    $ git push origin 0.4.1
+
+Pushing the tag triggers the workflow, which builds the zip, creates the GitHub
+release, and publishes to plugins.qgis.org. See [RELEASING.md](RELEASING.md) for
+the full process.

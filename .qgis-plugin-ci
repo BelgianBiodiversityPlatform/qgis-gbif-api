@@ -2,10 +2,12 @@
 # Used to package and publish the plugin. See RELEASING.md for the full process.
 
 # Directory holding the plugin source (the folder that contains metadata.txt).
-# Its name is also used as the name of the packaged zip and of the installed
-# plugin folder in QGIS, so it must stay "GBIFOccurrences" to keep existing
-# installations working across upgrades.
-plugin_path: GBIFOccurrences
+# Its name is also used as the package name on plugins.qgis.org, the name of the
+# packaged zip, and the installed plugin folder in QGIS. It must stay
+# "qgisgbifapi" - that is the package name the plugin has always been published
+# under - so that existing users receive 0.4.1 as an upgrade rather than a
+# separate, new plugin.
+plugin_path: qgisgbifapi
 
 # Repository coordinates, used when creating the GitHub release.
 github_organization_slug: BelgianBiodiversityPlatform

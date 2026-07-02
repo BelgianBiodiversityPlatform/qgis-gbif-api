@@ -66,7 +66,7 @@ uv run qgis-plugin-ci package 0.4.0-test --allow-uncommitted-changes
 ```
 
 The `Changelog file doesn't exist: CHANGELOG.md` warning is expected - this
-plugin keeps its changelog inside `GBIFOccurrences/metadata.txt`, not a separate
+plugin keeps its changelog inside `qgisgbifapi/metadata.txt`, not a separate
 file.
 
 ## Testing in QGIS
@@ -81,12 +81,12 @@ plugin to reload after edits.
 
 ```bash
 # macOS
-ln -s "$(pwd)/GBIFOccurrences" \
-  ~/Library/Application\ Support/QGIS/QGIS3/profiles/default/python/plugins/GBIFOccurrences
+ln -s "$(pwd)/qgisgbifapi" \
+  ~/Library/Application\ Support/QGIS/QGIS3/profiles/default/python/plugins/qgisgbifapi
 
 # Linux
-ln -s "$(pwd)/GBIFOccurrences" \
-  ~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/GBIFOccurrences
+ln -s "$(pwd)/qgisgbifapi" \
+  ~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/qgisgbifapi
 ```
 
 ## Releasing

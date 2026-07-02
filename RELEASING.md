@@ -14,12 +14,14 @@ plugin repository at [plugins.qgis.org](https://plugins.qgis.org).
 
 ## Repository layout
 
-The plugin source lives in the `GBIFOccurrences/` subdirectory (the folder that
-contains `metadata.txt`). qgis-plugin-ci uses that folder name for both the zip
-file and the installed plugin folder in QGIS, so it must stay `GBIFOccurrences`
-to keep existing users' installations working across upgrades. Everything at the
-repository root (this file, the README, screenshots, the workflow, the
-`tests/`) is development tooling and is **not** shipped inside the plugin zip.
+The plugin source lives in the `qgisgbifapi/` subdirectory (the folder that
+contains `metadata.txt`). qgis-plugin-ci uses that folder name as the package
+name on plugins.qgis.org, the zip file name, and the installed plugin folder in
+QGIS, so it must stay `qgisgbifapi` - the name the plugin has always been
+published under - otherwise plugins.qgis.org treats an upload as a brand-new
+plugin instead of a new version. Everything at the repository root (this file,
+the README, screenshots, the workflow, the `tests/`) is development tooling and
+is **not** shipped inside the plugin zip.
 
 ## One-time setup
 
@@ -39,7 +41,7 @@ plugin at plugins.qgis.org, otherwise the upload step is rejected.
 ## Cutting a release
 
 1. **Bump the version and changelog** in
-   [`GBIFOccurrences/metadata.txt`](GBIFOccurrences/metadata.txt):
+   [`qgisgbifapi/metadata.txt`](qgisgbifapi/metadata.txt):
    - update `version=` (e.g. `version=0.4.1`)
    - add a matching entry at the top of the `changelog=` block
    Commit this on a branch and merge it to `master` as usual.

@@ -14,7 +14,7 @@ There are two distinct Python interpreters in play, and confusing them is the
 main source of mistakes:
 
 - **Runtime Python = QGIS's own bundled interpreter.** The plugin (everything
-  under `GBIFOccurrences/`) runs here. It imports `qgis` and `PyQt`, which are
+  under `qgisgbifapi/`) runs here. It imports `qgis` and `PyQt`, which are
   **only available inside QGIS** - you cannot `pip install qgis`. Do not add
   `qgis` or `PyQt` to `pyproject.toml`.
 - **Tooling Python = the local `uv`-managed `.venv/`.** Used only for
@@ -36,9 +36,9 @@ uv run qgis-plugin-ci package 0.4.0-test --allow-uncommitted-changes   # build f
 
 `package` refuses to run with uncommitted changes unless you pass
 `--allow-uncommitted-changes` (`-c`). The `CHANGELOG.md doesn't exist` warning
-is expected - the changelog lives in `GBIFOccurrences/metadata.txt`.
+is expected - the changelog lives in `qgisgbifapi/metadata.txt`.
 
-Live development in QGIS: symlink `GBIFOccurrences/` into the QGIS profile's
+Live development in QGIS: symlink `qgisgbifapi/` into the QGIS profile's
 plugin dir and use the *Plugin Reloader* plugin (exact paths in
 [CONTRIBUTING.md](CONTRIBUTING.md)).
 
@@ -51,20 +51,26 @@ harness before claiming tests pass.
 
 ## Releasing
 
-Automated via git tag - see [RELEASING.md](RELEASING.md). Bump `version=` and
-the `changelog=` block in `GBIFOccurrences/metadata.txt`, then push a **bare**
-version tag (no `v` prefix): `git tag 0.4.1 && git push origin 0.4.1`. The tag
+Automated via GitHub Releases - see [RELEASING.md](RELEASING.md). Bump
+`version=` and the `changelog=` block in `qgisgbifapi/metadata.txt` on `master`,
+then **publish a GitHub Release** whose tag is the **bare** version (no `v`
+prefix): `gh release create 0.4.1 --title 0.4.1 --generate-notes`. The tag
 string is written verbatim into `metadata.txt` by qgis-plugin-ci, so it must
-match `version=`. The tag push triggers `.github/workflows/release.yaml`, which
-builds the zip, creates the GitHub release, and publishes to plugins.qgis.org.
+match `version=`. Publishing the release triggers
+`.github/workflows/release.yaml`, which builds the zip, attaches it to the
+release, and publishes to plugins.qgis.org. Note: qgis-plugin-ci does **not**
+create the GitHub Release - it only attaches to an existing one, which is why the
+trigger is `release: published` and not a bare tag push.
 
 ## Architecture
 
-The shipped plugin is the `GBIFOccurrences/` directory (the one containing
-`metadata.txt`). **Its folder name must stay `GBIFOccurrences`** - qgis-plugin-ci
-uses it for both the zip name and the installed folder name, so renaming breaks
-existing users' upgrades. Everything at the repo root (README, tests,
-screenshots, tooling config) is dev-only and is not shipped in the zip.
+The shipped plugin is the `qgisgbifapi/` directory (the one containing
+`metadata.txt`). **Its folder name must stay `qgisgbifapi`** - qgis-plugin-ci
+uses it as the package name on plugins.qgis.org, the zip name, and the installed
+folder name, so renaming would orphan existing users (the plugin has always been
+published as `qgisgbifapi`, even though its Python classes are named
+`GBIFOccurrences*`). Everything at the repo root (README, tests, screenshots,
+tooling config) is dev-only and is not shipped in the zip.
 
 Module responsibilities and flow:
 

@@ -20,7 +20,7 @@ Installation
 Use
 ---
 
-1. Open the extension window from the main menu: Vector -> GBIF Occurrences -> Load GBIF Occurrences (alternatively, use the ![Plugin icon](./GBIFOccurrences/icon.png) icon in the toolbar).
+1. Open the extension window from the main menu: Vector -> GBIF Occurrences -> Load GBIF Occurrences (alternatively, use the ![Plugin icon](./qgisgbifapi/icon.png) icon in the toolbar).
 
 2. Fill in the details about yout search (for example: *betta splendens* occurring in Thailand) and click "Load occurrences".
 
@@ -73,7 +73,7 @@ Releases are automated with [qgis-plugin-ci](https://github.com/opengisch/qgis-p
 and GitHub Actions. In short:
 
 - Bump `version=` and update the `changelog=` block in
-  `GBIFOccurrences/metadata.txt`, then merge to `master`.
+  `qgisgbifapi/metadata.txt`, then merge to `master`.
 - Push a **bare** version tag (no `v` prefix), matching the version you set:
 
     $ git tag 0.4.1

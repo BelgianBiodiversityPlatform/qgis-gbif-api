@@ -7,6 +7,10 @@ OCCURRENCES_SEARCH_URL = urljoin(ENDPOINT, "occurrence/search")
 RECORDS_PER_PAGE = 300  # Maximum currently supported by API
 MAX_TOTAL_RECORDS_GBIF = 200000
 WARNING_THRESHOLD = 5000  # Threshold for showing the warning
+# (connect, read) timeout in seconds for every GBIF request, so the plugin
+# never hangs indefinitely on a stalled connection. A generous read timeout
+# leaves room for GBIF to assemble a full page (300 records) under load.
+REQUEST_TIMEOUT = (10, 60)
 
 
 class ConnectionIssue(Exception):
@@ -43,8 +47,10 @@ def count_occurrences(filters):
         'From': 'https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api'
     }
     try:
-        req = requests.get(OCCURRENCES_SEARCH_URL, params=p, headers=headers)
-    except requests.exceptions.ConnectionError:
+        req = requests.get(
+            OCCURRENCES_SEARCH_URL, params=p, headers=headers, timeout=REQUEST_TIMEOUT
+        )
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         raise ConnectionIssue
     else:
         try:
@@ -86,7 +92,9 @@ def get_occurrences_in_batches(filters):
             'From': 'https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api'
         }
 
-        req = requests.get(OCCURRENCES_SEARCH_URL, params=p, headers=headers)
+        req = requests.get(
+            OCCURRENCES_SEARCH_URL, params=p, headers=headers, timeout=REQUEST_TIMEOUT
+        )
 
         resp = req.json()
 

@@ -38,7 +38,7 @@ class GBIFOccurrences(object):
         self.project = QgsProject.instance()
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
-        ressource_path = "ressources"
+        ressource_path = "resources"
         self.img_path = os.path.join(
             self.plugin_dir,
             ressource_path,

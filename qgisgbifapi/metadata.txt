@@ -41,7 +41,7 @@ tags=gbif, biodiversity data, webservices, api, science, occurrence, ecology, op
 homepage=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api
 tracker=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api/issues
 repository=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api
-icon=ressources/img/icon.png
+icon=resources/img/icon.png
 # experimental flag
 experimental=False
 

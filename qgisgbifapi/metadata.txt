@@ -48,3 +48,9 @@ experimental=False
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 
+[api]
+endpoint=http://api.gbif.org/v1/
+occurrences_search=occurrence/search
+per_page_records=300
+max_total_records=200000
+warning_threshold=5000

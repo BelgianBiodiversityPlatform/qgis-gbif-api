@@ -6,7 +6,6 @@ from .gbif_webservices import (  # noqa: F401
     count_occurrences,
     get_occurrences_in_batches,
     _finalize_filters,
-    MAX_TOTAL_RECORDS_GBIF,
 )
 from .helpers import (  # noqa: F401
     create_and_add_layer,

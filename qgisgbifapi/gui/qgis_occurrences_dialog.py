@@ -33,12 +33,12 @@ from qgisgbifapi.tool import (
     count_occurrences,
     ConnectionIssue,
     GBIFApiError,
-    MAX_TOTAL_RECORDS_GBIF,
     RectangleDrawTool,
     create_and_add_layer,
     add_gbif_occ_to_layer,
 )
 
+from qgisgbifapi.__about__ import __api_max_total_records__
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(os.path.dirname(__file__), "qgis_occurrences_dialog_base.ui")
@@ -224,7 +224,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         msg = """The query returned more than {max} records.\
             Due to limitations in the GBIF infrastructure, \
             very large queries are currently not supported.""".format(
-            max=MAX_TOTAL_RECORDS_GBIF
+            max=__api_max_total_records__
         )
         QMessageBox.information(self, "Error", msg)
 
@@ -397,7 +397,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         except AttributeError:
             pass
         else:
-            if count > MAX_TOTAL_RECORDS_GBIF:
+            if count > int(__api_max_total_records__):
                 self.dialog_too_many_results()
             elif count > 0:  # We have results
                 self.before_search_ui()

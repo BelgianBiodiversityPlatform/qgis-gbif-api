@@ -7,7 +7,7 @@
                              -------------------
         begin                : 2014-11-18
         git sha              : $Format:%H$
-        copyright            : (C) 2014 by Nicolas Noé - Belgian Biodiversity Platform
+        copyright            : (C) 2014 by Nicolas Noé - Belgian Biodiversity Platform  # noqa: E501
         email                : n.noe@biodiversity.be
  ***************************************************************************/
 
@@ -28,15 +28,16 @@ from qgis.PyQt.QtCore import QDate, Qt, QIODevice, QDir, QFile, QByteArray
 if Qgis.QGIS_VERSION_INT >= 40000:
     from qgis.PyQt.QtCore import QIODeviceBase
 
-from .helpers import create_and_add_layer, add_gbif_occ_to_layer
-from .gbif_webservices import (
+from qgisgbifapi.tool import (
     get_occurrences_in_batches,
     count_occurrences,
     ConnectionIssue,
     GBIFApiError,
     MAX_TOTAL_RECORDS_GBIF,
+    RectangleDrawTool,
+    create_and_add_layer,
+    add_gbif_occ_to_layer,
 )
-from .rectangle_tool import RectangleDrawTool
 
 
 FORM_CLASS, _ = uic.loadUiType(
@@ -50,23 +51,34 @@ COMBOBOX_ALL_LABEL = "-- All --"
 def get_countries():
     countries = []
 
-    path = QDir(QgsApplication.metadataPath()).absoluteFilePath(u"country_code_ISO_3166.csv")
+    path = QDir(QgsApplication.metadataPath()).absoluteFilePath(
+        "country_code_ISO_3166.csv"
+    )
     file = QFile(path)
     if Qgis.QGIS_VERSION_INT >= 40000:
         open_mode = QIODeviceBase.OpenModeFlag.ReadOnly
     else:
         open_mode = open_mode = QIODevice.ReadOnly
     if not file.open(open_mode):
-        print(u"Error while opening the CSV file: {}, {} ".format(path, file.errorString()))
+        print(
+            "Error while opening the CSV file: {}, {} ".format(
+                path,
+                file.errorString()
+            )
+        )
         return countries
 
     file.readLine()
     while not file.atEnd():
         country_attr = {}
         line = file.readLine()
-        items = line.split(QByteArray(','.encode()))
+        items = line.split(QByteArray(",".encode()))
         if len(items) > 9:
-            name = items[0].trimmed().data().decode() + ' ' + items[1].trimmed().data().decode()
+            name = (
+                items[0].trimmed().data().decode()
+                + " "
+                + items[1].trimmed().data().decode()
+            )
             alpha2 = items[2].trimmed().data().decode()
             alpha3 = items[3].trimmed().data().decode()
         else:
@@ -101,7 +113,10 @@ def _get_selected_country_code(combobox):
 def _get_val_or_range(min_field, max_field, error_message):
     try:
         max_field.date() >= min_field.date()
-        return "{min},{max}".format(min=str(min_field.date().toString('yyyy-MM-dd')), max=str(max_field.date().toString('yyyy-MM-dd')))
+        return "{min},{max}".format(
+            min=str(min_field.date().toString("yyyy-MM-dd")),
+            max=str(max_field.date().toString("yyyy-MM-dd")),
+        )
     except GBIFApiError as e:
         error_message("GBIF Error: " + str(e))
 
@@ -143,14 +158,28 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.minDateEdit.setDate(QDate.currentDate())
         self.maxDateEdit.setDate(QDate.currentDate())
 
-        self.taxonKeyField.setToolTip('This is the primary id used to identify a taxon, "0" means this filter is not used.<br><b>Must be an integer</b>')
-        self.basisComboBox.setToolTip('Basis of record is a Darwin Core term that refers to the specific nature of the record.')
-        self.catalogNumberField.setToolTip('An identifier of any form assigned by the source within a physical collection or digital dataset for the record which may not be unique,<br>but should be fairly unique in combination with the institution and collection code.')
-        self.recordedByField.setToolTip('The person who recorded the occurrence.')
-        self.gadmGidField.setToolTip('A GADM geographic identifier at any level,<br>for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1')
-        self.institutionCodeField.setToolTip('An identifier of any form assigned by the source to<br>identifythe institution the record belongs to.<br>Not guaranteed to be unique.')
-        self.collectionCodeField.setToolTip('An identifier of any form assigned by the source to<br>identify the physical collection or digital dataset uniquely<br>within the context of an institution.')
-        self.datasetKeyField.setToolTip('The occurrence dataset key (a UUID).')
+        self.taxonKeyField.setToolTip(
+            'This is the primary id used to identify a taxon, "0" means this filter is not used.<br><b>Must be an integer</b>'  # noqa: E501
+        )
+        self.basisComboBox.setToolTip(
+            "Basis of record is a Darwin Core term that refers to the specific nature of the record."  # noqa: E501
+        )
+        self.catalogNumberField.setToolTip(
+            "An identifier of any form assigned by the source within a physical collection or digital dataset for the record which may not be unique,<br>but should be fairly unique in combination with the institution and collection code."  # noqa: E501
+        )
+        self.recordedByField.setToolTip(
+            "The person who recorded the occurrence."
+        )
+        self.gadmGidField.setToolTip(
+            "A GADM geographic identifier at any level,<br>for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1"  # noqa: E501
+        )
+        self.institutionCodeField.setToolTip(
+            "An identifier of any form assigned by the source to<br>identifythe institution the record belongs to.<br>Not guaranteed to be unique."  # noqa: E501
+        )
+        self.collectionCodeField.setToolTip(
+            "An identifier of any form assigned by the source to<br>identify the physical collection or digital dataset uniquely<br>within the context of an institution."  # noqa: E501
+        )
+        self.datasetKeyField.setToolTip("The occurrence dataset key (a UUID).")
 
         self.loadButton.clicked.connect(self.load_occurrences)
         self.bboxCheckBox.clicked.connect(self.localisation_selection_ui)
@@ -181,7 +210,9 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
 
     def _populate_bor(self):
         for elem in self.BOR:
-            self.basisComboBox.addItemWithCheckState(text=elem,state=Qt.CheckState.Checked,userData=self.BOR[elem])
+            self.basisComboBox.addItemWithCheckState(
+                text=elem, state=Qt.CheckState.Checked, userData=self.BOR[elem]
+            )
 
     def _disable_controls(self):
         self.toolBox.setDisabled(True)
@@ -191,10 +222,10 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
 
     def dialog_too_many_results(self):
         msg = """The query returned more than {max} records.\
-            Due to limitations in the GBIF infrastructure, very large queries are currently not \
-            supported.""".format(
-                        max=MAX_TOTAL_RECORDS_GBIF
-                    )
+            Due to limitations in the GBIF infrastructure, \
+            very large queries are currently not supported.""".format(
+            max=MAX_TOTAL_RECORDS_GBIF
+        )
         QMessageBox.information(self, "Error", msg)
 
     def before_search_ui(self):
@@ -230,7 +261,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         if self.dateCheckBox.isChecked():
             event_date = _get_val_or_range(
                 self.minDateEdit, self.maxDateEdit, self.error_message
-                )
+            )
         else:
             event_date = ""
         if not self.bboxCheckBox.isChecked():
@@ -245,7 +276,11 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                 "institutionCode": self.institutionCodeField.text(),
                 "collectionCode": self.collectionCodeField.text(),
                 "eventDate": event_date,
-                "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
+                "taxonKey": (
+                    str(self.taxonKeyField.value())
+                    if self.taxonKeyField.value() != 0
+                    else ""
+                ),
                 "datasetKey": self.datasetKeyField.text(),
                 "recordedBy": self.recordedByField.text(),
                 "gadm_gid": self.gadmGidField.text(),
@@ -263,13 +298,19 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                     "institutionCode": self.institutionCodeField.text(),
                     "collectionCode": self.collectionCodeField.text(),
                     "eventDate": event_date,
-                    "taxonKey": str(self.taxonKeyField.value()) if self.taxonKeyField.value() != 0 else '',
+                    "taxonKey": (
+                        str(self.taxonKeyField.value())
+                        if self.taxonKeyField.value() != 0
+                        else ""
+                    ),
                     "datasetKey": self.datasetKeyField.text(),
                     "recordedBy": self.recordedByField.text(),
                     "geometry": self.rectangle_tool.new_extent.asWktPolygon(),
                 }
             except AttributeError:
-                self.error_message("GBIF Error: No bounding box drawned on map canvas, press the dedicated button.")
+                self.error_message(
+                    "GBIF Error: No bounding box drawned on map canvas, press the dedicated button."  # noqa: E501
+                )
 
     def localisation_selection_ui(self):
         if self.boundariesCheckBox.isChecked():
@@ -304,7 +345,10 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             pass
 
     def recreate_rubber_band(self):
-        if self.rectangle_tool.new_extent and self.rectangle_tool.rubber_band.numberOfVertices() == 0:
+        if (
+            self.rectangle_tool.new_extent
+            and self.rectangle_tool.rubber_band.numberOfVertices() == 0
+        ):
             extent4326 = self.rectangle_tool.new_extent
             if str(self.project.instance().crs().postgisSrid()) != str(4326):
                 geom = self.rectangle_tool.transform_geom(
@@ -359,13 +403,19 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                 self.before_search_ui()
                 scientific_name = filters["scientificName"]
                 if not scientific_name:
-                    scientific_name = "GBIF_O Taxon {}".format(filters["taxonKey"])
-                layer = create_and_add_layer(project=self.project, name=scientific_name)
+                    scientific_name = "GBIF_O Taxon {}".format(
+                        filters["taxonKey"]
+                    )
+                layer = create_and_add_layer(
+                    project=self.project,
+                    name=scientific_name
+                )
 
                 already_loaded_records = 0
 
                 for occ in get_occurrences_in_batches(filters):
-                    if self.stop:  # Interrupt process if the stop button was pressed
+                    # Interrupt process if the stop button was pressed
+                    if self.stop:
                         self.stop = False
                         break
 
@@ -373,11 +423,15 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                     self.show_progress(already_loaded_records, count)
                     add_gbif_occ_to_layer(occ, layer)
 
-                    # We need this to make UI responsive (progress bar advance, ...)
+                    # We need this to make UI responsive
                     QApplication.processEvents()
 
                 self.after_search_ui()
 
                 self.close()
             else:
-                QMessageBox.information(self, "Warning", "No results returned.")
+                QMessageBox.information(
+                    self,
+                    "Warning",
+                    "No results returned."
+                )

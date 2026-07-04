@@ -30,7 +30,7 @@ def show_warning():
     msg_box = QMessageBox()
     msg_box.setIcon(QMessageBox.Icon.Warning)
     msg_box.setText(
-        f"The number of results is very large (> {WARNING_THRESHOLD}). Do you want to continue?"
+        f"The number of results is very large (> {WARNING_THRESHOLD}). Do you want to continue?"  # noqa: E501
     )
     msg_box.setWindowTitle("Warning")
     msg_box.setStandardButtons(
@@ -48,7 +48,10 @@ def count_occurrences(filters):
     }
     try:
         req = requests.get(
-            OCCURRENCES_SEARCH_URL, params=p, headers=headers, timeout=REQUEST_TIMEOUT
+            OCCURRENCES_SEARCH_URL,
+            params=p,
+            headers=headers,
+            timeout=REQUEST_TIMEOUT,
         )
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         raise ConnectionIssue
@@ -89,11 +92,14 @@ def get_occurrences_in_batches(filters):
         p["offset"] = offset
         headers = {
             'User-Agent': 'QGIS Plugin GBIF Occurrences',
-            'From': 'https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api'
+            'From': 'https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api'  # noqa: E501
         }
 
         req = requests.get(
-            OCCURRENCES_SEARCH_URL, params=p, headers=headers, timeout=REQUEST_TIMEOUT
+            OCCURRENCES_SEARCH_URL,
+            params=p,
+            headers=headers,
+            timeout=REQUEST_TIMEOUT,
         )
 
         resp = req.json()

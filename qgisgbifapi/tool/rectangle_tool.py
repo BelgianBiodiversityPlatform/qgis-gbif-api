@@ -13,8 +13,9 @@ from qgis.PyQt.QtGui import QColor
 
 
 class RectangleDrawTool(QgsMapTool):
-    """Tool used to draw a rectangle on the canvas. The rectangle's CRS is by default
-    the one from the QGIS project, so it is reprojected into the CRS of the WFS."""
+    """Tool used to draw a rectangle on the canvas.
+    The rectangle's CRS is by default the one from the QGIS project,
+    so it is reprojected into the CRS of the API."""
 
     signal = pyqtSignal()
 
@@ -33,7 +34,10 @@ class RectangleDrawTool(QgsMapTool):
         self.is_left_button_pressed = False
         # create a rubber line object
         # to display the geometry of the dragged object on the canvas
-        self.rubber_band = QgsRubberBand(self.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rubber_band = QgsRubberBand(
+            self.canvas,
+            QgsWkbTypes.PolygonGeometry
+        )
         self.rubber_band.setColor(QColor(255, 0, 0, 50))
         self.rubber_band.setWidth(2)
 

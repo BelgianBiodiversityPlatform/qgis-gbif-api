@@ -13,7 +13,7 @@
 
 """
 from builtins import object
-from qgis.core import QgsProject
+from qgis.core import QgsProject, QgsNetworkAccessManager
 from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon
@@ -36,6 +36,8 @@ class GBIFOccurrences(object):
         # Save reference to the QGIS interface
         self.iface = iface
         self.project = QgsProject.instance()
+        # Save reference to request manager
+        self.manager = QgsNetworkAccessManager()
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         ressource_path = "resources"
@@ -62,6 +64,7 @@ class GBIFOccurrences(object):
         self.dlg = GBIFOccurrencesDialog(
             project=self.project,
             iface=self.iface,
+            manager=self.manager,
         )
 
         # Declare instance attributes

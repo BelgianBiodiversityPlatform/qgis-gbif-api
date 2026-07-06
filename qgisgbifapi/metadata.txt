@@ -49,7 +49,7 @@ experimental=False
 deprecated=False
 
 [api]
-endpoint=http://api.gbif.org/v1/
+endpoint=https://api.gbif.org/v1/
 occurrences_search=occurrence/search
 per_page_records=300
 max_total_records=200000

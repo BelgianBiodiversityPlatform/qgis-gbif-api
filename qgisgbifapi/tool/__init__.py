@@ -15,3 +15,5 @@ from .helpers import (  # noqa: F401
     _get_field_value,
 )
 from .rectangle_tool import RectangleDrawTool  # noqa: F401
+from .count_request import CountRequest  # noqa: F401
+from .batch_request import BatchRequest  # noqa: F401

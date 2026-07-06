@@ -29,16 +29,23 @@ if Qgis.QGIS_VERSION_INT >= 40000:
     from qgis.PyQt.QtCore import QIODeviceBase
 
 from qgisgbifapi.tool import (
-    get_occurrences_in_batches,
-    count_occurrences,
     ConnectionIssue,
     GBIFApiError,
     RectangleDrawTool,
     create_and_add_layer,
-    add_gbif_occ_to_layer,
+    CountRequest,
+    BatchRequest,
+    _finalize_filters,
+    show_warning,
 )
 
-from qgisgbifapi.__about__ import __api_max_total_records__
+from qgisgbifapi.__about__ import (
+    __api_max_total_records__,
+    __api_endpoint__,
+    __api_occurrences_search__,
+    __api_warning_threshold__,
+    __api_per_page_records__,
+)
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(os.path.dirname(__file__), "qgis_occurrences_dialog_base.ui")
@@ -139,12 +146,21 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         "Unknown": "UNKNOWN",
     }
 
-    def __init__(self, parent=None, project=None, iface=None):
+    def __init__(self, parent=None, project=None, iface=None, manager=None):
         """Constructor."""
         super(GBIFOccurrencesDialog, self).__init__(parent)
         self.project = project
         self.iface = iface
+        self.manager = manager
         self.canvas = self.iface.mapCanvas()
+
+        self.count_request = CountRequest(manager=self.manager)
+        self.batch_request = BatchRequest(
+            manager=self.manager,
+            api_url=__api_endpoint__,
+            occurrences_search=__api_occurrences_search__,
+            dlg=self,
+        )
 
         self.setupUi(self)
         self.setFixedSize(self.size())
@@ -387,51 +403,63 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         # Remove the map tool to draw the rectangle
         self.canvas.unsetMapTool(self.rectangle_tool)
         filters = self._ui_to_filters()
-
+        p = _finalize_filters(filters)
+        p["offset"] = 0
         try:
-            count = count_occurrences(filters)
+            self.count_request.download(
+                __api_endpoint__,
+                __api_occurrences_search__,
+                p,
+            )
+            self.count_request.finished_dl.connect(
+                lambda: self.count_results(filters, p)
+            )
         except ConnectionIssue:
             self.connection_error_message()
         except GBIFApiError as e:
             self.error_message("GBIF Error: " + str(e))
         except AttributeError:
             pass
-        else:
-            if count > int(__api_max_total_records__):
-                self.dialog_too_many_results()
-            elif count > 0:  # We have results
-                self.before_search_ui()
-                scientific_name = filters["scientificName"]
-                if not scientific_name:
-                    scientific_name = "GBIF_O Taxon {}".format(
-                        filters["taxonKey"]
-                    )
-                layer = create_and_add_layer(
-                    project=self.project,
-                    name=scientific_name
+
+    def count_results(self, filters, params):
+        total_count = self.count_request.nb_obs
+        if total_count > int(__api_max_total_records__):
+            self.dialog_too_many_results()
+        elif total_count > 0:  # We have results
+            self.before_search_ui()
+            if total_count > int(__api_warning_threshold__):
+                if not show_warning():
+                    return  # User chose not to continue
+            self.show_progress(0, total_count)
+            scientific_name = filters["scientificName"]
+            if not scientific_name:
+                scientific_name = "GBIF_O Taxon {}".format(
+                    filters["taxonKey"]
                 )
+            layer = create_and_add_layer(
+                project=self.project,
+                name=scientific_name
+            )
 
-                already_loaded_records = 0
-
-                for occ in get_occurrences_in_batches(filters):
-                    # Interrupt process if the stop button was pressed
-                    if self.stop:
-                        self.stop = False
-                        break
-
-                    already_loaded_records += len(occ)
-                    self.show_progress(already_loaded_records, count)
-                    add_gbif_occ_to_layer(occ, layer)
-
-                    # We need this to make UI responsive
-                    QApplication.processEvents()
-
-                self.after_search_ui()
-
-                self.close()
+            if int(total_count / int(__api_per_page_records__)) == 1:
+                total_pages = int(total_count / int(__api_per_page_records__))
             else:
-                QMessageBox.information(
-                    self,
-                    "Warning",
-                    "No results returned."
-                )
+                total_pages = int(total_count / int(__api_per_page_records__)) + 1  # noqa: E501
+            self.batch_request.total_pages = total_pages
+            self.batch_request.download(params, layer, total_count)
+            self.batch_request.finished_dl.connect(self.occurrences_results)
+
+            # We need this to make UI responsive
+            QApplication.processEvents()
+        else:
+            QMessageBox.information(
+                self,
+                "Warning",
+                "No results returned."
+            )
+
+    def occurrences_results(self):
+
+        self.after_search_ui()
+
+        self.close()

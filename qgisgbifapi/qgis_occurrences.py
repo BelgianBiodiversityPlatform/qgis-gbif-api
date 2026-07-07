@@ -59,8 +59,9 @@ class GBIFOccurrences(object):
         locale = QSettings().value('locale/userLocale')[0:2]
         locale_path = os.path.join(
             self.plugin_dir,
+            'resources',
             'i18n',
-            'GBIFOccurrences_{}.qm'.format(locale))
+            'qgisgbifapi_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()

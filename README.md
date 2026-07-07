@@ -20,7 +20,7 @@ Installation
 Use
 ---
 
-1. Open the extension window from the main menu: Vector -> GBIF Occurrences -> Load GBIF Occurrences (alternatively, use the ![Plugin icon](./qgisgbifapi/icon.png) icon in the toolbar).
+1. Open the extension window from the main menu: Vector -> GBIF Occurrences -> Load GBIF Occurrences (alternatively, use the ![Plugin icon](./qgisgbifapi/resources/img/icon.png) icon in the toolbar).
 
 2. Fill in the details about yout search (for example: *betta splendens* occurring in Thailand) and click "Load occurrences".
 

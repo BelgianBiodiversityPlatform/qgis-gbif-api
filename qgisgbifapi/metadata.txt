@@ -41,10 +41,16 @@ tags=gbif, biodiversity data, webservices, api, science, occurrence, ecology, op
 homepage=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api
 tracker=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api/issues
 repository=https://github.com/BelgianBiodiversityPlatform/qgis-gbif-api
-icon=icon.png
+icon=resources/img/icon.png
 # experimental flag
 experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 
+[api]
+endpoint=https://api.gbif.org/v1/
+occurrences_search=occurrence/search
+per_page_records=300
+max_total_records=200000
+warning_threshold=5000

@@ -6,7 +6,7 @@
  Retrieve data from GBIF webservices (occurrences API) directly within QGIS.
                              -------------------
         begin                : 2014-11-18
-        copyright            : (C) 2014 by Nicolas Noé - Belgian Biodiversity Platform
+        copyright            : (C) 2014 by Nicolas Noé - Belgian Biodiversity Platform  # noqa: E501
         email                : n.noe@biodiversity.be
         git sha              : $Format:%H$
  ***************************************************************************/

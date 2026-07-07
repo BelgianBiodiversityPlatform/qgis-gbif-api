@@ -7,18 +7,18 @@
                               -------------------
         begin                : 2014-11-18
         git sha              : $Format:%H$
-        copyright            : (C) 2014 by Nicolas Noé - Belgian Biodiversity Platform
+        copyright            : (C) 2014 by Nicolas Noé - Belgian Biodiversity Platform  # noqa: E501
         email                : n.noe@biodiversity.be
  ***************************************************************************/
 
 """
 from builtins import object
-from qgis.core import QgsProject
+from qgis.core import QgsProject, QgsNetworkAccessManager
 from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon
 # Import the code for the dialog
-from .qgis_occurrences_dialog import GBIFOccurrencesDialog
+from qgisgbifapi.gui import GBIFOccurrencesDialog
 import os.path
 
 
@@ -36,8 +36,16 @@ class GBIFOccurrences(object):
         # Save reference to the QGIS interface
         self.iface = iface
         self.project = QgsProject.instance()
+        # Save reference to request manager
+        self.manager = QgsNetworkAccessManager()
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
+        ressource_path = "resources"
+        self.img_path = os.path.join(
+            self.plugin_dir,
+            ressource_path,
+            'img',
+        )
         # initialize locale
         locale = QSettings().value('locale/userLocale')[0:2]
         locale_path = os.path.join(
@@ -53,7 +61,11 @@ class GBIFOccurrences(object):
                 QCoreApplication.installTranslator(self.translator)
 
         # Create the dialog (after translation) and keep reference
-        self.dlg = GBIFOccurrencesDialog(project=self.project, iface=self.iface)
+        self.dlg = GBIFOccurrencesDialog(
+            project=self.project,
+            iface=self.iface,
+            manager=self.manager,
+        )
 
         # Declare instance attributes
         self.actions = []
@@ -154,7 +166,10 @@ class GBIFOccurrences(object):
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = os.path.join(self.plugin_dir, 'icon.png')
+        icon_path = os.path.join(
+            self.img_path,
+            'icon.png',
+        )
         self.add_action(
             icon_path,
             text=self.tr(u'Load GBIF occurrences'),

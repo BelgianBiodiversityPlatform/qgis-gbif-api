@@ -53,3 +53,4 @@ __api_occurrences_search__: str = __plugin_md__.get("api").get("occurrences_sear
 __api_per_page_records__: str = __plugin_md__.get("api").get("per_page_records")  # noqa: E501
 __api_max_total_records__: str = __plugin_md__.get("api").get("max_total_records")  # noqa: E501
 __api_warning_threshold__: str = __plugin_md__.get("api").get("warning_threshold")  # noqa: E501
+__api_timeout__: str = __plugin_md__.get("api").get("timeout_ms")  # noqa: E501

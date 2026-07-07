@@ -12,14 +12,22 @@
  ***************************************************************************/
 
 """
-from builtins import object
-from qgis.core import QgsProject, QgsNetworkAccessManager
-from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from qgis.PyQt.QtWidgets import QAction
-from qgis.PyQt.QtGui import QIcon
-# Import the code for the dialog
-from qgisgbifapi.gui import GBIFOccurrencesDialog
+# Import standard libs
 import os.path
+from builtins import object
+# Import qgis class
+from qgis.core import QgsProject, QgsNetworkAccessManager
+from qgis.PyQt.QtCore import (
+    QSettings,
+    QTranslator,
+    qVersion,
+    QCoreApplication,
+)
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QAction
+# Import plugin class and vars
+from qgisgbifapi.gui import GBIFOccurrencesDialog
+from qgisgbifapi.__about__ import __api_timeout__
 
 
 class GBIFOccurrences(object):
@@ -38,6 +46,7 @@ class GBIFOccurrences(object):
         self.project = QgsProject.instance()
         # Save reference to request manager
         self.manager = QgsNetworkAccessManager()
+        self.manager.setTimeout(int(__api_timeout__))
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         ressource_path = "resources"

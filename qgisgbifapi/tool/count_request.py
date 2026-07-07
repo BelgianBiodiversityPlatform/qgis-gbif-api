@@ -6,6 +6,11 @@ from qgis.PyQt.QtCore import QObject, QUrl, pyqtSignal
 from qgis.PyQt.QtNetwork import QNetworkReply, QNetworkRequest
 from qgis.core import QgsNetworkAccessManager
 
+from qgisgbifapi.__about__ import (
+    __api_endpoint__,
+    __api_occurrences_search__,
+)
+
 
 class CountRequest(QObject):
     finished_dl = pyqtSignal()
@@ -21,6 +26,7 @@ class CountRequest(QObject):
         super().__init__()
         self.network_manager = manager
 
+        self.params = None
         self.nb_obs = 0
         self._pending_downloads = 0
 
@@ -28,22 +34,23 @@ class CountRequest(QObject):
     def pending_downloads(self):
         return self._pending_downloads
 
-    def create_url(self, api_url, occurrences_search, params):
-        request_url = api_url + occurrences_search + "?"
-        for param in params:
-            if isinstance(params[param], list):
-                for elem in params[param]:
+    def create_url(self):
+        request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
+        for param in self.params:
+            if isinstance(self.params[param], list):
+                for elem in self.params[param]:
                     request_url = request_url + str(param) + "=" + str(elem) + "&"  # noqa: E501
-            elif params[param] == "":
+            elif self.params[param] == "":
                 pass
-            elif params[param] is None:
+            elif self.params[param] is None:
                 pass
             else:
-                request_url = request_url + str(param) + "=" + str(params[param]) + "&"  # noqa: E501
+                request_url = request_url + str(param) + "=" + str(self.params[param]) + "&"  # noqa: E501
         return request_url[:-1]
 
-    def download(self, api_url, occurrences_search, params):
-        request_url = self.create_url(api_url, occurrences_search, params)
+    def download(self, params):
+        self.params = params
+        request_url = self.create_url()
         request = QNetworkRequest(QUrl(request_url))
         request.setRawHeader(
             b"User-Agent",

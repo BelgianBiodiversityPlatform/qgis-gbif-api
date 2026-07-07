@@ -41,8 +41,6 @@ from qgisgbifapi.tool import (
 
 from qgisgbifapi.__about__ import (
     __api_max_total_records__,
-    __api_endpoint__,
-    __api_occurrences_search__,
     __api_warning_threshold__,
     __api_per_page_records__,
 )
@@ -157,10 +155,10 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.count_request = CountRequest(manager=self.manager)
         self.batch_request = BatchRequest(
             manager=self.manager,
-            api_url=__api_endpoint__,
-            occurrences_search=__api_occurrences_search__,
             dlg=self,
         )
+        self.count_request.finished_dl.connect(self.count_results)
+        self.batch_request.finished_dl.connect(self.occurrences_results)
 
         self.setupUi(self)
         self.setFixedSize(self.size())
@@ -407,12 +405,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         p["offset"] = 0
         try:
             self.count_request.download(
-                __api_endpoint__,
-                __api_occurrences_search__,
                 p,
-            )
-            self.count_request.finished_dl.connect(
-                lambda: self.count_results(filters, p)
             )
         except ConnectionIssue:
             self.connection_error_message()
@@ -421,7 +414,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         except AttributeError:
             pass
 
-    def count_results(self, filters, params):
+    def count_results(self):
         total_count = self.count_request.nb_obs
         if total_count > int(__api_max_total_records__):
             self.dialog_too_many_results()
@@ -431,10 +424,10 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                 if not show_warning():
                     return  # User chose not to continue
             self.show_progress(0, total_count)
-            scientific_name = filters["scientificName"]
+            scientific_name = self.count_request.params["scientificName"]
             if not scientific_name:
                 scientific_name = "GBIF_O Taxon {}".format(
-                    filters["taxonKey"]
+                    self.count_request.params["taxonKey"]
                 )
             layer = create_and_add_layer(
                 project=self.project,
@@ -446,8 +439,11 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             else:
                 total_pages = int(total_count / int(__api_per_page_records__)) + 1  # noqa: E501
             self.batch_request.total_pages = total_pages
-            self.batch_request.download(params, layer, total_count)
-            self.batch_request.finished_dl.connect(self.occurrences_results)
+            self.batch_request.download(
+                self.count_request.params,
+                layer,
+                total_count
+            )
 
             # We need this to make UI responsive
             QApplication.processEvents()

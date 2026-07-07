@@ -7,7 +7,11 @@ from qgis.PyQt.QtNetwork import QNetworkReply, QNetworkRequest
 from qgis.core import QgsNetworkAccessManager
 
 from qgisgbifapi.tool import add_gbif_occ_to_layer
-from qgisgbifapi.__about__ import __api_per_page_records__
+from qgisgbifapi.__about__ import (
+    __api_endpoint__,
+    __api_occurrences_search__,
+    __api_per_page_records__,
+)
 
 
 class BatchRequest(QObject):
@@ -21,14 +25,10 @@ class BatchRequest(QObject):
     def __init__(
         self,
         manager: QgsNetworkAccessManager = None,
-        api_url: str = None,
-        occurrences_search: str = None,
         dlg=None,
     ):
         super().__init__()
         self.network_manager = manager
-        self.api_url = api_url
-        self.occurrences_search = occurrences_search
         self.dlg = dlg
 
         self.total_pages = 0
@@ -49,7 +49,7 @@ class BatchRequest(QObject):
         return self._pending_downloads
 
     def create_url(self, params):
-        request_url = self.api_url + self.occurrences_search + "?"
+        request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
         for param in params:
             if isinstance(params[param], list):
                 for elem in params[param]:
@@ -94,22 +94,26 @@ class BatchRequest(QObject):
             resp = json.loads(data_request)
         if self.pending_downloads == 0:
             if self.pending_pages > self.total_pages:
+                self.total_pages = 0
+                self._pending_pages = 0
+                self._pending_obs = 0
                 self.finished_dl.emit()
             else:
                 if total_obs < int(__api_per_page_records__):
-                    offset = total_obs
                     self._pending_obs = total_obs
-                elif total_obs - self.pending_obs < int(__api_per_page_records__):  # noqa: E501
-                    offset = total_obs - self.pending_obs
+                elif total_obs - self._pending_obs < int(__api_per_page_records__):  # noqa: E501
+                    self._pending_obs = self.pending_obs + total_obs - self.pending_obs  # noqa: E501
                 else:
-                    offset = self.pending_pages * int(__api_per_page_records__)
-                self._pending_obs += int(__api_per_page_records__)
-                self.dlg.show_progress(offset, total_obs)
+                    self._pending_obs += int(__api_per_page_records__)
+                self.dlg.show_progress(self._pending_obs, total_obs)
                 add_gbif_occ_to_layer(resp["results"], layer)
                 if self.dlg.stop:
                     self.dlg.stop = False
+                    self.total_pages = 0
+                    self._pending_pages = 0
+                    self._pending_obs = 0
                     self.finished_dl.emit()
                 else:
-                    params["offset"] = offset
+                    params["offset"] = self._pending_obs
                     self.download(params, layer, total_obs)
         reply.deleteLater()

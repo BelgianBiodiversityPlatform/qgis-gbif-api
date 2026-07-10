@@ -16,7 +16,7 @@
 import os.path
 from builtins import object
 # Import qgis class
-from qgis.core import QgsProject, QgsNetworkAccessManager
+from qgis.core import QgsProject, QgsNetworkAccessManager, QgsApplication
 from qgis.PyQt.QtCore import (
     QSettings,
     QTranslator,
@@ -25,6 +25,7 @@ from qgis.PyQt.QtCore import (
 )
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
+from .processing_provider.provider import Provider
 # Import plugin class and vars
 from qgisgbifapi.gui import GBIFOccurrencesDialog
 from qgisgbifapi.__about__ import __api_timeout__
@@ -79,6 +80,7 @@ class GBIFOccurrences(object):
 
         # Declare instance attributes
         self.actions = []
+        self.provider = None
         self.menu = self.tr(u'&GBIF Occurrences')
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'GBIFOccurrences')
@@ -173,6 +175,10 @@ class GBIFOccurrences(object):
 
         return action
 
+    def initProcessing(self):
+        self.provider = Provider()
+        QgsApplication.processingRegistry().addProvider(self.provider)
+
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
@@ -193,6 +199,8 @@ class GBIFOccurrences(object):
                 self.tr(u'&GBIF Occurrences'),
                 action)
             self.iface.removeToolBarIcon(action)
+
+        QgsApplication.processingRegistry().removeProvider(self.provider)
 
     def run(self):
         """Run method that performs all the real work"""

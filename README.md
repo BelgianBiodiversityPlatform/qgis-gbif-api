@@ -74,14 +74,14 @@ Qt Linguist tools is needed to manage translation, on Ubuntu you can install it 
 sudo apt install qt5-qmake qttools5-dev-tools
 ```
 
-The requested languages and the file to translate are all available in the `qgisgbifapi/resources/i18n/plugin_translation.pro`.
+The requested languages and the files to translate are all available in the `qgisgbifapi/resources/i18n/plugin_translation.pro`.
 
-To create the `.ts`file, you need to launch this command:
+To create the `.ts` file used to write translation, you need to launch this command:
 ```bash
 pylupdate5 -noobsolete -verbose qgisgbifapi/resources/i18n/plugin_translation.pro
 ```
 
-Modify the `.ts`files and then launch the following command to update the necessary files fo translation :
+Modify the `.ts` files and then launch the following command to update the necessary files for translation:
 ```bash
 lrelease qgisgbifapi/resources/i18n/*.ts
 ```

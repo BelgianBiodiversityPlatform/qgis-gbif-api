@@ -4,13 +4,93 @@
 <context>
     <name>GBIFOccurrences</name>
     <message>
-        <location filename="../../qgis_occurrences.py" line="191"/>
+        <location filename="../../qgis_occurrences.py" line="192"/>
         <source>&amp;GBIF Occurrences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../qgis_occurrences.py" line="182"/>
+        <location filename="../../qgis_occurrences.py" line="183"/>
         <source>Load GBIF occurrences</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GBIFOccurrencesDialog</name>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="181"/>
+        <source>This is the primary id used to identify a taxon, &quot;0&quot; means this filter is not used.&lt;br&gt;&lt;b&gt;Must be an integer&lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="186"/>
+        <source>Basis of record is a Darwin Core term that refers to the specific nature of the record.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="191"/>
+        <source>An identifier of any form assigned by the source within a physical collection or digital dataset for the record which may not be unique,&lt;br&gt;but should be fairly unique in combination with the institution and collection code.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="196"/>
+        <source>The person who recorded the occurrence.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="201"/>
+        <source>A GADM geographic identifier at any level,&lt;br&gt;for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="206"/>
+        <source>An identifier of any form assigned by the source to&lt;br&gt;identifythe institution the record belongs to.&lt;br&gt;Not guaranteed to be unique.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="211"/>
+        <source>An identifier of any form assigned by the source to&lt;br&gt;identify the physical collection or digital dataset uniquely&lt;br&gt;within the context of an institution.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="216"/>
+        <source>The occurrence dataset key (a UUID).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="260"/>
+        <source>The query returned more than {max} records.
+            Due to limitations in the GBIF infrastructure,
+            very large queries are currently not supported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="282"/>
+        <source>Adding </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="289"/>
+        <source>Cannot connect to GBIF. Please check your Internet connection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="349"/>
+        <source>GBIF Error: No bounding box drawned on map canvas, press the dedicated button.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="437"/>
+        <source>GBIF Error: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="475"/>
+        <source>Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="475"/>
+        <source>No results returned.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

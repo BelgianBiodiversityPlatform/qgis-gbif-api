@@ -144,7 +144,13 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         "Unknown": "UNKNOWN",
     }
 
-    def __init__(self, parent=None, project=None, iface=None, manager=None):
+    def __init__(
+        self,
+        parent=None,
+        project=None,
+        iface=None,
+        manager=None
+    ):
         """Constructor."""
         super(GBIFOccurrencesDialog, self).__init__(parent)
         self.project = project
@@ -173,27 +179,43 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.maxDateEdit.setDate(QDate.currentDate())
 
         self.taxonKeyField.setToolTip(
-            'This is the primary id used to identify a taxon, "0" means this filter is not used.<br><b>Must be an integer</b>'  # noqa: E501
+            self.tr(
+                'This is the primary id used to identify a taxon, "0" means this filter is not used.<br><b>Must be an integer</b>'  # noqa: E501
+            )
         )
         self.basisComboBox.setToolTip(
-            "Basis of record is a Darwin Core term that refers to the specific nature of the record."  # noqa: E501
+            self.tr(
+                "Basis of record is a Darwin Core term that refers to the specific nature of the record."  # noqa: E501
+            )
         )
         self.catalogNumberField.setToolTip(
-            "An identifier of any form assigned by the source within a physical collection or digital dataset for the record which may not be unique,<br>but should be fairly unique in combination with the institution and collection code."  # noqa: E501
+            self.tr(
+                "An identifier of any form assigned by the source within a physical collection or digital dataset for the record which may not be unique,<br>but should be fairly unique in combination with the institution and collection code."  # noqa: E501
+            )
         )
         self.recordedByField.setToolTip(
-            "The person who recorded the occurrence."
+            self.tr(
+                "The person who recorded the occurrence."
+            )
         )
         self.gadmGidField.setToolTip(
-            "A GADM geographic identifier at any level,<br>for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1"  # noqa: E501
+            self.tr(
+                "A GADM geographic identifier at any level,<br>for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1"  # noqa: E501
+            )
         )
         self.institutionCodeField.setToolTip(
-            "An identifier of any form assigned by the source to<br>identifythe institution the record belongs to.<br>Not guaranteed to be unique."  # noqa: E501
+            self.tr(
+                "An identifier of any form assigned by the source to<br>identify the institution the record belongs to.<br>Not guaranteed to be unique."  # noqa: E501
+            )
         )
         self.collectionCodeField.setToolTip(
-            "An identifier of any form assigned by the source to<br>identify the physical collection or digital dataset uniquely<br>within the context of an institution."  # noqa: E501
+            self.tr(
+                "An identifier of any form assigned by the source to<br>identify the physical collection or digital dataset uniquely<br>within the context of an institution."  # noqa: E501
+            )
         )
-        self.datasetKeyField.setToolTip("The occurrence dataset key (a UUID).")
+        self.datasetKeyField.setToolTip(
+            self.tr("The occurrence dataset key (a UUID).")
+        )
 
         self.loadButton.clicked.connect(self.load_occurrences)
         self.bboxCheckBox.clicked.connect(self.localisation_selection_ui)
@@ -235,9 +257,9 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.toolBox.setDisabled(False)
 
     def dialog_too_many_results(self):
-        msg = """The query returned more than {max} records.\
-            Due to limitations in the GBIF infrastructure, \
-            very large queries are currently not supported.""".format(
+        msg = self.tr("""The query returned more than {max} records.\n\
+            Due to limitations in the GBIF infrastructure,\n\
+            very large queries are currently not supported.""").format(
             max=__api_max_total_records__
         )
         QMessageBox.information(self, "Error", msg)
@@ -258,14 +280,16 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
 
     def show_progress(self, already_loaded_records, total_records):
         self.loadingLabel.setText(
-            "Adding " + str(already_loaded_records) + "/" + str(total_records)
+            self.tr("Adding ") + str(already_loaded_records) + "/" + str(total_records)  # noqa: E501
         )
         percent = (already_loaded_records / float(total_records)) * 100
         self.progressBar.setValue(int(percent))
 
     def connection_error_message(self):
         self.error_message(
-            "Cannot connect to GBIF. Please check your Internet connection."
+            self.tr(
+                "Cannot connect to GBIF. Please check your Internet connection."  # noqa: E501
+            )
         )
 
     def error_message(self, msg):
@@ -323,7 +347,9 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                 }
             except AttributeError:
                 self.error_message(
-                    "GBIF Error: No bounding box drawned on map canvas, press the dedicated button."  # noqa: E501
+                    self.tr(
+                        "GBIF Error: No bounding box drawned on map canvas, press the dedicated button."  # noqa: E501
+                    )
                 )
 
     def localisation_selection_ui(self):
@@ -401,16 +427,14 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         # Remove the map tool to draw the rectangle
         self.canvas.unsetMapTool(self.rectangle_tool)
         filters = self._ui_to_filters()
-        p = _finalize_filters(filters)
-        p["offset"] = 0
         try:
             self.count_request.download(
-                p,
+                _finalize_filters(filters),
             )
         except ConnectionIssue:
             self.connection_error_message()
         except GBIFApiError as e:
-            self.error_message("GBIF Error: " + str(e))
+            self.error_message(self.tr("GBIF Error: ") + str(e))
         except AttributeError:
             pass
 
@@ -450,8 +474,8 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         else:
             QMessageBox.information(
                 self,
-                "Warning",
-                "No results returned."
+                self.tr("Warning"),
+                self.tr("No results returned.")
             )
 
     def occurrences_results(self):

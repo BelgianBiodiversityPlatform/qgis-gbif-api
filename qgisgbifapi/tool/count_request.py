@@ -50,6 +50,7 @@ class CountRequest(QObject):
 
     def download(self, params):
         self.params = params
+        self.params['offset'] = 0
         request_url = self.create_url()
         request = QNetworkRequest(QUrl(request_url))
         request.setRawHeader(

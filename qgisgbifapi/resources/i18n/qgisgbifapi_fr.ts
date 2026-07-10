@@ -124,144 +124,149 @@
         <translation>Utiliser un filtre temporel</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="103"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="119"/>
         <source>Date:</source>
         <translation>Date:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="116"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="103"/>
         <source>Scientific name:</source>
         <translation>Nom scientifique:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="132"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="148"/>
         <source>Draw a bounding box</source>
         <translation>Dessiner une emprise</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="148"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="161"/>
         <source>Bounding box:</source>
         <translation>Emprise:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="203"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="210"/>
         <source>Advanced Filters:</source>
         <translation>Filtres avancées</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="234"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="241"/>
         <source>Taxon:</source>
         <translation>Taxon:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="253"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="260"/>
         <source>About occurrence taxon:</source>
         <translation>A propos des occurrences de taxon:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="281"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="288"/>
         <source>Taxon key:</source>
         <translation>Identifiant de Taxon:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="311"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="318"/>
         <source>Metadata:</source>
         <translation>Métadonnées:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="335"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="342"/>
         <source>Recorded by:</source>
         <translation>Observé par:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="351"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="358"/>
         <source>Catalog Number:</source>
         <translation>Numéro de catalogue:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="364"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="371"/>
         <source>Basis of record:</source>
         <translation>Base de référence:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="390"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="397"/>
         <source>About occurrence metadata:</source>
         <translation>A propos des métadonnées des occurrences:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="404"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="411"/>
         <source>Localisation:</source>
         <translation>Localisation:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="423"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="430"/>
         <source>About occurrence localisation:</source>
         <translation>A propos de la localisation des occurrences:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="439"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="446"/>
         <source>Use a bounding box</source>
         <translation>Utiliser une emprise</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="458"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="465"/>
         <source>Country:</source>
         <translation>Pays:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="475"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="482"/>
         <source>Use admin boundaries</source>
         <translation>Utiliser les limites administratives</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="497"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="504"/>
         <source>GADM.org Area Code:</source>
         <translation>Code de localisation GADM.org:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="521"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="528"/>
         <source>Data Source:</source>
         <translation>Source de données:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="540"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="547"/>
         <source>About data source:</source>
         <translation>A propos de la source de données:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="588"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="595"/>
         <source>Dataset key:</source>
         <translation>Jeu de données:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="601"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="608"/>
         <source>Collection Code:</source>
         <translation>Code de la collection:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="614"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="621"/>
         <source>Publishing Country:</source>
         <translation>Pays de publication:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="627"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="634"/>
         <source>Institution Code:</source>
         <translation>Code institution:</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="693"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="700"/>
         <source>Load occurrences</source>
-        <translation>Chargement des occurrences</translation>
+        <translation>Lancer l'extraction</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="696"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="703"/>
         <source>Return</source>
         <translation>Retour</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="727"/>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="734"/>
         <source>Stop</source>
         <translation>Stop</translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog_base.ui" line="181"/>
+        <source>Export minimal attribute table</source>
+        <translation>Extraire les occurrences avec des attributs limités</translation>
     </message>
 </context>
 </TS>

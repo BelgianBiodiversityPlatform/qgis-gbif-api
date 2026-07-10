@@ -17,47 +17,47 @@
 <context>
     <name>GBIFOccurrencesDialog</name>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="181"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="180"/>
         <source>This is the primary id used to identify a taxon, &quot;0&quot; means this filter is not used.&lt;br&gt;&lt;b&gt;Must be an integer&lt;/b&gt;</source>
         <translation>C'est le principal identifiant utilisé pour identifier un taxon, &quot;0&quot; signifie que ce filtre n'est pas utilisé.&lt;br&gt;&lt;b&gt;Doit être un entier&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="186"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="185"/>
         <source>Basis of record is a Darwin Core term that refers to the specific nature of the record.</source>
         <translation>La base de l'enregistrement est un terme du Darwin Core qui se réfère à la nature spécifique de l'enregistrement.</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="191"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="190"/>
         <source>An identifier of any form assigned by the source within a physical collection or digital dataset for the record which may not be unique,&lt;br&gt;but should be fairly unique in combination with the institution and collection code.</source>
         <translation>Un identifiant attribué par la source dans une collection ou un jeu de données, il peut ne pas être unique,&lt;br&gt;mais devrait être assez unique en le combinant avec le code institution et le code collection.</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="196"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="195"/>
         <source>The person who recorded the occurrence.</source>
         <translation>La personne qui à enregistré l'occurrence.</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="201"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="200"/>
         <source>A GADM geographic identifier at any level,&lt;br&gt;for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1</source>
         <translation>Un identifiant unique geographique GADM pour n'importe quel niveau administratif,&lt;br&gt;par exemple AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="206"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="205"/>
         <source>An identifier of any form assigned by the source to&lt;br&gt;identify the institution the record belongs to.&lt;br&gt;Not guaranteed to be unique.</source>
         <translation>Un identifiant assigné par la source pour&lt;br&gt;identifier l'institution auquel appartient l'enregistrement.&lt;br&gt;N'est pas garantit qu'il soit unique.</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="211"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="210"/>
         <source>An identifier of any form assigned by the source to&lt;br&gt;identify the physical collection or digital dataset uniquely&lt;br&gt;within the context of an institution.</source>
         <translation>Un identifiant assigné par la source pour&lt;br&gt;identifier le jeu de données ou la collection de manière unique&lt;br&gt;dans le contexte d'une institution.</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="216"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="215"/>
         <source>The occurrence dataset key (a UUID).</source>
         <translation>La clé du jeu de données de l'occurrence (un UUID).</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="260"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="259"/>
         <source>The query returned more than {max} records.
             Due to limitations in the GBIF infrastructure,
             very large queries are currently not supported.</source>
@@ -66,34 +66,39 @@
             les très grosses requêtes ne sont actuellement pas supportées.</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="282"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="281"/>
         <source>Adding </source>
         <translation>Ajout </translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="289"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="288"/>
         <source>Cannot connect to GBIF. Please check your Internet connection.</source>
         <translation>Impossible de se connecter au GBIF. Veuillez vérifier votre connexion internet.</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="349"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="348"/>
         <source>GBIF Error: No bounding box drawned on map canvas, press the dedicated button.</source>
         <translation>Erreur GBIF: Pas d'emprise déssiné sur le canvas, appuyez sur le bouton dédidé.</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="437"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="434"/>
         <source>GBIF Error: </source>
         <translation>Erreur GBIF: </translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="475"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="472"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="../../gui/qgis_occurrences_dialog.py" line="475"/>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="472"/>
         <source>No results returned.</source>
         <translation>Aucun résultat retrouvé.</translation>
+    </message>
+    <message>
+        <location filename="../../gui/qgis_occurrences_dialog.py" line="295"/>
+        <source>Error</source>
+        <translation>Erreur</translation>
     </message>
 </context>
 <context>

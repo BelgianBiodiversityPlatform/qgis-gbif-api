@@ -4,6 +4,7 @@ import json
 # Import PyQt libs
 from qgis.PyQt.QtCore import QObject, QUrl, pyqtSignal
 from qgis.PyQt.QtNetwork import QNetworkReply, QNetworkRequest
+from qgis.PyQt.QtWidgets import QDialog
 from qgis.core import QgsNetworkAccessManager
 
 from qgisgbifapi.__about__ import (
@@ -21,9 +22,10 @@ class CountRequest(QObject):
         """
 
     def __init__(
-        self, manager: QgsNetworkAccessManager = None
+        self, dlg: QDialog = None, manager: QgsNetworkAccessManager = None
     ):
         super().__init__()
+        self.dlg = dlg
         self.network_manager = manager
 
         self.params = None
@@ -68,12 +70,13 @@ class CountRequest(QObject):
             print(
                 f"code: {reply.error()} message: {reply.errorString()}"  # noqa: E501
             )
+            self.dlg.connection_error_message()
         else:
             # Decode data fetch from the get request and create a dictionnary.
             data_request = reply.readAll().data().decode()
             res = json.loads(data_request)
             # Get the observation number in the extent based on filters.
             self.nb_obs = res["count"]
+            if self.pending_downloads == 0:
+                self.finished_dl.emit()
         reply.deleteLater()
-        if self.pending_downloads == 0:
-            self.finished_dl.emit()

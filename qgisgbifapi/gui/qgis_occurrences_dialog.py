@@ -29,7 +29,6 @@ if Qgis.QGIS_VERSION_INT >= 40000:
     from qgis.PyQt.QtCore import QIODeviceBase
 
 from qgisgbifapi.tool import (
-    ConnectionIssue,
     GBIFApiError,
     RectangleDrawTool,
     create_and_add_layer,
@@ -158,7 +157,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.manager = manager
         self.canvas = self.iface.mapCanvas()
 
-        self.count_request = CountRequest(manager=self.manager)
+        self.count_request = CountRequest(dlg=self, manager=self.manager)
         self.batch_request = BatchRequest(
             manager=self.manager,
             dlg=self,
@@ -293,7 +292,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         )
 
     def error_message(self, msg):
-        QMessageBox.critical(self, "Error", msg)
+        QMessageBox.critical(self, self.tr("Error"), msg)
 
     def _ui_to_filters(self):
         if self.dateCheckBox.isChecked():
@@ -431,8 +430,6 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             self.count_request.download(
                 _finalize_filters(filters),
             )
-        except ConnectionIssue:
-            self.connection_error_message()
         except GBIFApiError as e:
             self.error_message(self.tr("GBIF Error: ") + str(e))
         except AttributeError:

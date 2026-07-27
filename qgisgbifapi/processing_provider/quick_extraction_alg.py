@@ -38,7 +38,6 @@ from qgis.PyQt.QtWidgets import QMessageBox
 from qgisgbifapi.tool import (
     create_and_add_layer,
     _finalize_filters,
-    _get_val_or_range,
     add_gbif_occ_to_layer,
 )
 
@@ -176,11 +175,17 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         start_time, end_time = self.get_date_range(parameters["OPTIONS"])
 
         if start_time != "" and end_time != "":
-            event_date = _get_val_or_range(
-                start_time,
-                end_time,
-                self.error_message,
-            )
+            if end_time >= start_time:
+                event_date = "{min},{max}".format(
+                    min=str(start_time.toString("yyyy-MM-dd")),
+                    max=str(end_time.toString("yyyy-MM-dd")),
+                )
+            else:
+                feedback.reportError(
+                    "Start date is greater than end date",  # noqa: E501
+                    True,
+                )
+                return {}
         else:
             event_date = ""
 
@@ -216,6 +221,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
                 + " records. Due to limitations in the GBIF infrastructure, very large queries are currently not supported.",  # noqa: E501
                 True,
             )
+            return {}
         elif occ_count > 0:  # We have results
             feedback.pushInfo(
                 "The query returned "
@@ -294,7 +300,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         elif selection == 5:
             day_range = -7
         start_time = QDateTime.currentDateTime().addDays(day_range)
-        return start_time, end_time
+        return start_time, end_time     
 
     def get_geometry(self, extent, output_crs):
         if extent is not None:

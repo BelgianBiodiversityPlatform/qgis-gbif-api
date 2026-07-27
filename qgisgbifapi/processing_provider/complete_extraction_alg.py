@@ -27,9 +27,9 @@ from qgis.core import (
     QgsProcessingContext,
     QgsProcessingFeedback,
     QgsProcessingParameterFeatureSink,
-    QgsProcessingParameterDateTime,
     QgsProcessingParameterString,
     QgsProcessingParameterExtent,
+    QgsProcessingParameterDateTime,
 )
 from qgis.PyQt.QtNetwork import QNetworkRequest
 from qgis.PyQt.QtCore import QDateTime, QUrl
@@ -38,8 +38,6 @@ from qgis.PyQt.QtWidgets import QMessageBox
 from qgisgbifapi.tool import (
     create_and_add_layer,
     _finalize_filters,
-    _get_val_or_range,
-    show_warning,
     add_gbif_occ_to_layer,
 )
 
@@ -70,7 +68,6 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
     # used when calling the algorithm from another algorithm, or when
     # calling from the QGIS console.
 
-    INPUT = "INPUT"
     OUTPUT = "OUTPUT"
     EXTENT = "EXTENT"
     SPECIES_NAME = "SPECIES_NAME"
@@ -178,42 +175,35 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         """
         Here is where the processing itself takes place.
         """
+        output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
         if (
             parameters["START_DATETIME"] is not None
             and parameters["END_DATETIME"] is not None
         ):
-            event_date = _get_val_or_range(
-                parameters["START_DATETIME"],
-                parameters["END_DATETIME"],
-                self.error_message,
-            )
+            if parameters["END_DATETIME"] >= parameters["START_DATETIME"]:
+                event_date = "{min},{max}".format(
+                    min=str(parameters["START_DATETIME"].toString("yyyy-MM-dd")),  # noqa: E501
+                    max=str(parameters["END_DATETIME"].toString("yyyy-MM-dd")),
+                )
+            else:
+                feedback.reportError(
+                    "Start date is greater than end date",
+                    True,
+                )
+                return {}
+        elif parameters["START_DATETIME"] is not None:
+            event_date = str(parameters["START_DATETIME"].toString("yyyy-MM-dd"))  # noqa: E501
+            feedback.pushInfo("Only one date filled :" + str(event_date))
+        elif parameters["END_DATETIME"] is not None:
+            event_date = str(parameters["END_DATETIME"].toString("yyyy-MM-dd"))
+            feedback.pushInfo("Only one date filled :" + str(event_date))
         else:
             event_date = ""
-        point_list = parameters["EXTENT"].split(" ")[0]
-        crs = parameters["EXTENT"].split(" ")[1][1:-1]
-        output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
-        xmin = point_list.split(",")[0]
-        xmax = point_list.split(",")[1]
-        ymin = point_list.split(",")[2]
-        ymax = point_list.split(",")[3]
-        rect = QgsRectangle()
-        rect.setXMaximum(float(xmax))
-        rect.setXMinimum(float(xmin))
-        rect.setYMaximum(float(ymax))
-        rect.setYMinimum(float(ymin))
-        extent = QgsReferencedGeometry().fromReferencedRect(
-            QgsReferencedRectangle(
-                rect, QgsCoordinateReferenceSystem(crs)
-            )
-        )
-        extent.transform(
-            QgsCoordinateTransform(
-                QgsCoordinateReferenceSystem(str(crs)),
-                output_crs,
-                QgsProject.instance(),
-            )
-        )
+            feedback.pushInfo("No date filled, no temporal filter")
+
+        geometry = self.get_geometry(parameters["EXTENT"], output_crs)
+
         filters = {
             "scientificName": parameters["SPECIES_NAME"],
             "basisOfRecord": [
@@ -229,15 +219,8 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 "PRESERVED_SPECIMEN",
                 "UNKNOWN",
             ],
-            "catalogNumber": "",
-            "publishingCountry": None,
-            "institutionCode": "",
-            "collectionCode": "",
-            "taxonKey": "",
-            "datasetKey": "",
-            "recordedBy": "",
             "eventDate": event_date,
-            "geometry": extent.boundingBox().asWktPolygon(),
+            "geometry": geometry,
             "hasCoordinate": "true",
             "limit": __api_per_page_records__,
         }
@@ -245,11 +228,25 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
         layer = QgsVectorLayer()
         if occ_count > int(__api_max_total_records__):
-            self.dialog_too_many_results()
+            feedback.reportError(
+                "The query returned more than "
+                + str(__api_max_total_records__)
+                + " records. Due to limitations in the GBIF infrastructure, very large queries are currently not supported.",  # noqa: E501
+                True,
+            )
+            return {}
         elif occ_count > 0:  # We have results
+            feedback.pushInfo(
+                "The query returned "
+                + str(occ_count)
+                + " records."
+            )
             if occ_count > int(__api_warning_threshold__):
-                if not show_warning():
-                    return  # User chose not to continue
+                feedback.pushWarning(
+                    "The number of records is very large (> "
+                    + str(__api_warning_threshold__)
+                    + "). It may takes some times"
+                )
             scientific_name = parameters["SPECIES_NAME"]
             layer = create_and_add_layer(project=None, name=scientific_name)
 
@@ -290,7 +287,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
         for f in layer.getFeatures():
             sink.addFeature(f, QgsFeatureSink.FastInsert)
-            
+
         return {self.OUTPUT: dest_id}
 
     def createInstance(self):
@@ -298,6 +295,33 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
     def error_message(self, msg):
         QMessageBox.critical(self, self.tr("Error"), msg)
+
+    def get_geometry(self, extent, output_crs):
+        if extent is not None:
+            point_list = extent.split(" ")[0]
+            crs = extent.split(" ")[1][1:-1]
+            xmin = point_list.split(",")[0]
+            xmax = point_list.split(",")[1]
+            ymin = point_list.split(",")[2]
+            ymax = point_list.split(",")[3]
+            rect = QgsRectangle()
+            rect.setXMaximum(float(xmax))
+            rect.setXMinimum(float(xmin))
+            rect.setYMaximum(float(ymax))
+            rect.setYMinimum(float(ymin))
+            extent = QgsReferencedGeometry().fromReferencedRect(
+                QgsReferencedRectangle(rect, QgsCoordinateReferenceSystem(crs))
+            )
+            extent.transform(
+                QgsCoordinateTransform(
+                    QgsCoordinateReferenceSystem(str(crs)),
+                    output_crs,
+                    QgsProject.instance(),
+                )
+            )
+            return extent.boundingBox().asWktPolygon()
+        else:
+            return ""
 
     def create_url(self, params):
         request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
@@ -358,4 +382,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         # Decode data fetch from the get request and create a dictionnary.
         data_request = req_reply.content().data().decode()
         res = json.loads(data_request)
-        add_gbif_occ_to_layer(res["results"], layer)
+        try:
+            add_gbif_occ_to_layer(res["results"], layer)
+        except TypeError:
+            print(res["results"])

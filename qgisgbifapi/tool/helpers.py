@@ -9,6 +9,18 @@ from qgis.core import (
     QgsField,
 )
 from qgis.PyQt.QtCore import QMetaType, QVariant
+from qgisgbifapi.tool import GBIFApiError
+
+
+def _get_val_or_range(min_field, max_field, error_message):
+    try:
+        max_field >= min_field
+        return "{min},{max}".format(
+            min=str(min_field.toString("yyyy-MM-dd")),
+            max=str(max_field.toString("yyyy-MM-dd")),
+        )
+    except GBIFApiError as e:
+        error_message("GBIF Error: " + str(e))
 
 
 def create_and_add_layer(project, name, epsg_id=4326):
@@ -16,7 +28,8 @@ def create_and_add_layer(project, name, epsg_id=4326):
     mem_layer = QgsVectorLayer(
         "Point?crs=epsg:{id}&index=true".format(id=epsg_id), name, "memory"
     )
-    project.addMapLayer(mem_layer)
+    if project is not None:
+        project.addMapLayer(mem_layer)
 
     return mem_layer
 
@@ -91,5 +104,4 @@ def add_gbif_occ_to_layer(occurrences, layer):
         )
 
         features.append(feat)
-
     add_features_to_layer(layer, features)

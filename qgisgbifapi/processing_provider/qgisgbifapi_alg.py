@@ -10,21 +10,49 @@
 """
 
 from typing import Any, Optional
-
+import json
 from qgis.core import (
+    QgsProject,
+    QgsCoordinateTransform,
+    QgsReferencedGeometry,
+    QgsBlockingNetworkRequest,
     QgsFeatureSink,
-    QgsProcessing,
+    QgsVectorLayer,
+    QgsReferencedRectangle,
+    QgsRectangle,
+    Qgis,
+    QgsProcessingException,
+    QgsCoordinateReferenceSystem,
     QgsProcessingAlgorithm,
     QgsProcessingContext,
-    QgsProcessingException,
     QgsProcessingFeedback,
     QgsProcessingParameterFeatureSink,
-    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterDateTime,
+    QgsProcessingParameterString,
+    QgsProcessingParameterExtent,
 )
-from qgis import processing
+from qgis.PyQt.QtNetwork import QNetworkRequest
+from qgis.PyQt.QtCore import QDateTime, QUrl
+from qgis.PyQt.QtWidgets import QMessageBox
+
+from qgisgbifapi.tool import (
+    create_and_add_layer,
+    _finalize_filters,
+    _get_val_or_range,
+    show_warning,
+    add_gbif_occ_to_layer,
+)
+
+from qgisgbifapi.__about__ import (
+    __api_endpoint__,
+    __api_occurrences_search__,
+    __api_max_total_records__,
+    __api_warning_threshold__,
+    __api_per_page_records__,
+)
 
 
-class ExampleProcessingAlgorithm(QgsProcessingAlgorithm):
+class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
     """
     This is an example algorithm that takes a vector layer and
     creates a new identical one.
@@ -44,6 +72,10 @@ class ExampleProcessingAlgorithm(QgsProcessingAlgorithm):
 
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
+    EXTENT = "EXTENT"
+    SPECIES_NAME = "SPECIES_NAME"
+    START_DATETIME = "START_DATETIME"
+    END_DATETIME = "END_DATETIME"
 
     def name(self) -> str:
         """
@@ -53,21 +85,21 @@ class ExampleProcessingAlgorithm(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return "myscript"
+        return "quickfilters"
 
     def displayName(self) -> str:
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return "My Script"
+        return " Occurrences extraction (Quick filters)"
 
     def group(self) -> str:
         """
         Returns the name of the group this algorithm belongs to. This string
         should be localised.
         """
-        return "Example scripts"
+        return ""
 
     def groupId(self) -> str:
         """
@@ -77,7 +109,7 @@ class ExampleProcessingAlgorithm(QgsProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return "examplescripts"
+        return ""
 
     def shortHelpString(self) -> str:
         """
@@ -85,7 +117,7 @@ class ExampleProcessingAlgorithm(QgsProcessingAlgorithm):
         should provide a basic description about what the algorithm does and
         the parameters and outputs associated with it.
         """
-        return "Example algorithm short description"
+        return "Extract GBIF's occurrences based on filters using GBIF's API"
 
     def initAlgorithm(self, config: Optional[dict[str, Any]] = None):
         """
@@ -93,13 +125,40 @@ class ExampleProcessingAlgorithm(QgsProcessingAlgorithm):
         with some other properties.
         """
 
-        # We add the input vector features source. It can have any kind of
-        # geometry.
+        self.ntwk_requester = QgsBlockingNetworkRequest()
+
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.INPUT,
-                "Input layer",
-                [QgsProcessing.SourceType.TypeVectorAnyGeometry],
+            QgsProcessingParameterExtent(
+                self.EXTENT, "Extent", defaultValue=None, optional=True
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterString(
+                self.SPECIES_NAME,
+                "Species name",
+                defaultValue=None,
+                multiLine=False,
+                optional=True,
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterDateTime(
+                self.START_DATETIME,
+                "Start Datetime",
+                type=QgsProcessingParameterDateTime.Date,
+                defaultValue=QDateTime.currentDateTime(),
+                optional=True,
+                maxValue=QDateTime.currentDateTime(),
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterDateTime(
+                self.END_DATETIME,
+                "End Datetime",
+                type=QgsProcessingParameterDateTime.Date,
+                defaultValue=QDateTime.currentDateTime(),
+                optional=True,
+                maxValue=QDateTime.currentDateTime(),
             )
         )
 
@@ -107,7 +166,7 @@ class ExampleProcessingAlgorithm(QgsProcessingAlgorithm):
         # usually takes the form of a newly created vector layer when the
         # algorithm is run in QGIS).
         self.addParameter(
-            QgsProcessingParameterFeatureSink(self.OUTPUT, "Output layer")
+            QgsProcessingParameterFeatureSink(self.OUTPUT, "GBIF Occurrences")
         )
 
     def processAlgorithm(
@@ -120,84 +179,183 @@ class ExampleProcessingAlgorithm(QgsProcessingAlgorithm):
         Here is where the processing itself takes place.
         """
 
-        # Retrieve the feature source and sink. The 'dest_id' variable is used
-        # to uniquely identify the feature sink, and must be included in the
-        # dictionary returned by the processAlgorithm function.
-        source = self.parameterAsSource(parameters, self.INPUT, context)
-
-        # If source was not found, throw an exception to indicate that the algorithm
-        # encountered a fatal error. The exception text can be any string, but in this
-        # case we use the pre-built invalidSourceError method to return a standard
-        # helper text for when a source cannot be evaluated
-        if source is None:
-            raise QgsProcessingException(
-                self.invalidSourceError(parameters, self.INPUT)
+        if (
+            parameters["START_DATETIME"] is not None
+            and parameters["END_DATETIME"] is not None
+        ):
+            event_date = _get_val_or_range(
+                parameters["START_DATETIME"],
+                parameters["END_DATETIME"],
+                self.error_message,
             )
+        else:
+            event_date = ""
+        point_list = parameters["EXTENT"].split(" ")[0]
+        crs = parameters["EXTENT"].split(" ")[1][1:-1]
+        output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
+        xmin = point_list.split(",")[0]
+        xmax = point_list.split(",")[1]
+        ymin = point_list.split(",")[2]
+        ymax = point_list.split(",")[3]
+        rect = QgsRectangle()
+        rect.setXMaximum(float(xmax))
+        rect.setXMinimum(float(xmin))
+        rect.setYMaximum(float(ymax))
+        rect.setYMinimum(float(ymin))
+        extent = QgsReferencedGeometry().fromReferencedRect(
+            QgsReferencedRectangle(
+                rect, QgsCoordinateReferenceSystem(crs)
+            )
+        )
+        extent.transform(
+            QgsCoordinateTransform(
+                QgsCoordinateReferenceSystem(str(crs)),
+                output_crs,
+                QgsProject.instance(),
+            )
+        )
+        filters = {
+            "scientificName": parameters["SPECIES_NAME"],
+            "basisOfRecord": [
+                "FOSSIL_SPECIMEN",
+                "HUMAN_OBSERVATION",
+                "LITERATURE",
+                "LIVING_SPECIMEN",
+                "MACHINE_OBSERVATION",
+                "MATERIAL_CITATION",
+                "MATERIAL_SAMPLE",
+                "OCCURRENCE",
+                "OBSERVATION",
+                "PRESERVED_SPECIMEN",
+                "UNKNOWN",
+            ],
+            "catalogNumber": "",
+            "publishingCountry": None,
+            "institutionCode": "",
+            "collectionCode": "",
+            "taxonKey": "",
+            "datasetKey": "",
+            "recordedBy": "",
+            "eventDate": event_date,
+            "geometry": extent.boundingBox().asWktPolygon(),
+            "hasCoordinate": "true",
+            "limit": __api_per_page_records__,
+        }
+        occ_count = self.occurrence_counting(_finalize_filters(filters))
+
+        layer = QgsVectorLayer()
+        if occ_count > int(__api_max_total_records__):
+            self.dialog_too_many_results()
+        elif occ_count > 0:  # We have results
+            if occ_count > int(__api_warning_threshold__):
+                if not show_warning():
+                    return  # User chose not to continue
+            scientific_name = parameters["SPECIES_NAME"]
+            layer = create_and_add_layer(project=None, name=scientific_name)
+
+            if int(occ_count / int(__api_per_page_records__)) == 1:
+                total_pages = int(occ_count / int(__api_per_page_records__))
+            else:
+                total_pages = (
+                    int(occ_count / int(__api_per_page_records__)) + 1
+                )  # noqa: E501
+
+            for page in range(total_pages):
+                filters["offset"] = int(page) * int(__api_per_page_records__)
+                self.batch_request(layer, filters)
+                # Update the progress bar
+                feedback.setProgress(int(int(page) / total_pages))
+                # Stop the algorithm if cancel button has been clicked
+                if feedback.isCanceled():
+                    break
 
         (sink, dest_id) = self.parameterAsSink(
             parameters,
             self.OUTPUT,
             context,
-            source.fields(),
-            source.wkbType(),
-            source.sourceCrs(),
+            layer.fields(),
+            Qgis.WkbType.Point,
+            output_crs,
         )
 
-        # Send some information to the user
-        feedback.pushInfo(f"CRS is {source.sourceCrs().authid()}")
-
-        # If sink was not created, throw an exception to indicate that the algorithm
-        # encountered a fatal error. The exception text can be any string, but in this
-        # case we use the pre-built invalidSinkError method to return a standard
-        # helper text for when a sink cannot be evaluated
+        # If sink was not created, throw an exception to indicate that
+        # the algorithm encountered a fatal error. The exception text
+        # can be any string, but in this case we use the pre-built
+        # invalidSinkError method to return a standard helper text
+        # for when a sink cannot be evaluated
         if sink is None:
-            raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
+            raise QgsProcessingException(
+                self.invalidSinkError(parameters, self.OUTPUT)
+            )
 
-        # Compute the number of steps to display within the progress bar and
-        # get features from source
-        total = 100.0 / source.featureCount() if source.featureCount() else 0
-        features = source.getFeatures()
-
-        for current, feature in enumerate(features):
-            # Stop the algorithm if cancel button has been clicked
-            if feedback.isCanceled():
-                break
-
-            # Add a feature in the sink
-            sink.addFeature(feature, QgsFeatureSink.Flag.FastInsert)
-
-            # Update the progress bar
-            feedback.setProgress(int(current * total))
-
-        # To run another Processing algorithm as part of this algorithm, you can use
-        # processing.run(...). Make sure you pass the current context and feedback
-        # to processing.run to ensure that all temporary layer outputs are available
-        # to the executed algorithm, and that the executed algorithm can send feedback
-        # reports to the user (and correctly handle cancellation and progress reports!)
-        if False:
-            buffered_layer = processing.run(
-                "native:buffer",
-                {
-                    "INPUT": dest_id,
-                    "DISTANCE": 1.5,
-                    "SEGMENTS": 5,
-                    "END_CAP_STYLE": 0,
-                    "JOIN_STYLE": 0,
-                    "MITER_LIMIT": 2,
-                    "DISSOLVE": False,
-                    "OUTPUT": "memory:",
-                },
-                context=context,
-                feedback=feedback,
-            )["OUTPUT"]
-
-        # Return the results of the algorithm. In this case our only result is
-        # the feature sink which contains the processed features, but some
-        # algorithms may return multiple feature sinks, calculated numeric
-        # statistics, etc. These should all be included in the returned
-        # dictionary, with keys matching the feature corresponding parameter
-        # or output names.
+        for f in layer.getFeatures():
+            sink.addFeature(f, QgsFeatureSink.FastInsert)
+            
         return {self.OUTPUT: dest_id}
 
     def createInstance(self):
         return self.__class__()
+
+    def error_message(self, msg):
+        QMessageBox.critical(self, self.tr("Error"), msg)
+
+    def create_url(self, params):
+        request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
+        for param in params:
+            if isinstance(params[param], list):
+                for elem in params[param]:
+                    request_url = (
+                        request_url + str(param) + "=" + str(elem) + "&"
+                    )  # noqa: E501
+            elif params[param] == "":
+                pass
+            elif params[param] is None:
+                pass
+            else:
+                request_url = (
+                    request_url + str(param) + "=" + str(params[param]) + "&"
+                )  # noqa: E501
+        return request_url[:-1]
+
+    def occurrence_counting(self, params):
+        params["offset"] = 0
+        request_url = self.create_url(params)
+        request = QNetworkRequest(QUrl(request_url))
+        request.setRawHeader(
+            b"User-Agent",
+            bytes("QGIS Plugin GBIF Occurrences", encoding="utf-8"),  # noqa: E501
+        )
+        request.setHeader(
+            QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json"
+        )  # noqa: E501
+        self.ntwk_requester.get(
+            request=request,
+            forceRefresh=False,
+        )
+        req_reply = self.ntwk_requester.reply()
+        # Decode data fetch from the get request and create a dictionnary.
+        data_request = req_reply.content().data().decode()
+        res = json.loads(data_request)
+        # Get the observation number in the extent based on filters.
+        nb_obs = res["count"]
+        return nb_obs
+
+    def batch_request(self, layer, params):
+        request_url = self.create_url(params)
+        request = QNetworkRequest(QUrl(request_url))
+        request.setRawHeader(
+            b"User-Agent",
+            bytes("QGIS Plugin GBIF Occurrences", encoding="utf-8"),  # noqa: E501
+        )
+        request.setHeader(
+            QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json"
+        )  # noqa: E501
+        self.ntwk_requester.get(
+            request=request,
+            forceRefresh=False,
+        )
+        req_reply = self.ntwk_requester.reply()
+        # Decode data fetch from the get request and create a dictionnary.
+        data_request = req_reply.content().data().decode()
+        res = json.loads(data_request)
+        add_gbif_occ_to_layer(res["results"], layer)

@@ -192,6 +192,8 @@ class GBIFOccurrences(object):
             callback=self.run,
             parent=self.iface.mainWindow())
 
+        self.initProcessing()
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:

@@ -11,6 +11,7 @@ from .helpers import (  # noqa: F401
     add_gbif_occ_to_layer,
     is_sequence,
     _get_field_value,
+    _get_val_or_range,
 )
 from .rectangle_tool import RectangleDrawTool  # noqa: F401
 from .count_request import CountRequest  # noqa: F401

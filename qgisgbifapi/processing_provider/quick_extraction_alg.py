@@ -27,9 +27,9 @@ from qgis.core import (
     QgsProcessingContext,
     QgsProcessingFeedback,
     QgsProcessingParameterFeatureSink,
-    QgsProcessingParameterDateTime,
     QgsProcessingParameterString,
     QgsProcessingParameterExtent,
+    QgsProcessingParameterEnum,
 )
 from qgis.PyQt.QtNetwork import QNetworkRequest
 from qgis.PyQt.QtCore import QDateTime, QUrl
@@ -39,7 +39,6 @@ from qgisgbifapi.tool import (
     create_and_add_layer,
     _finalize_filters,
     _get_val_or_range,
-    show_warning,
     add_gbif_occ_to_layer,
 )
 
@@ -70,12 +69,10 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
     # used when calling the algorithm from another algorithm, or when
     # calling from the QGIS console.
 
-    INPUT = "INPUT"
     OUTPUT = "OUTPUT"
     EXTENT = "EXTENT"
     SPECIES_NAME = "SPECIES_NAME"
-    START_DATETIME = "START_DATETIME"
-    END_DATETIME = "END_DATETIME"
+    OPTIONS = "OPTIONS"
 
     def name(self) -> str:
         """
@@ -142,23 +139,19 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
-            QgsProcessingParameterDateTime(
-                self.START_DATETIME,
-                "Start Datetime",
-                type=QgsProcessingParameterDateTime.Date,
-                defaultValue=QDateTime.currentDateTime(),
-                optional=True,
-                maxValue=QDateTime.currentDateTime(),
-            )
-        )
-        self.addParameter(
-            QgsProcessingParameterDateTime(
-                self.END_DATETIME,
-                "End Datetime",
-                type=QgsProcessingParameterDateTime.Date,
-                defaultValue=QDateTime.currentDateTime(),
-                optional=True,
-                maxValue=QDateTime.currentDateTime(),
+            QgsProcessingParameterEnum(
+                self.OPTIONS,
+                "Date event",
+                options=[
+                    "No date filter",
+                    "Last 10 years",
+                    "Last year",
+                    "Last 6 month",
+                    "Last month",
+                    "Last week",
+                ],
+                allowMultiple=False,
+                defaultValue="No date filter",
             )
         )
 
@@ -178,42 +171,21 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         """
         Here is where the processing itself takes place.
         """
+        output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
-        if (
-            parameters["START_DATETIME"] is not None
-            and parameters["END_DATETIME"] is not None
-        ):
+        start_time, end_time = self.get_date_range(parameters["OPTIONS"])
+
+        if start_time != "" and end_time != "":
             event_date = _get_val_or_range(
-                parameters["START_DATETIME"],
-                parameters["END_DATETIME"],
+                start_time,
+                end_time,
                 self.error_message,
             )
         else:
             event_date = ""
-        point_list = parameters["EXTENT"].split(" ")[0]
-        crs = parameters["EXTENT"].split(" ")[1][1:-1]
-        output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
-        xmin = point_list.split(",")[0]
-        xmax = point_list.split(",")[1]
-        ymin = point_list.split(",")[2]
-        ymax = point_list.split(",")[3]
-        rect = QgsRectangle()
-        rect.setXMaximum(float(xmax))
-        rect.setXMinimum(float(xmin))
-        rect.setYMaximum(float(ymax))
-        rect.setYMinimum(float(ymin))
-        extent = QgsReferencedGeometry().fromReferencedRect(
-            QgsReferencedRectangle(
-                rect, QgsCoordinateReferenceSystem(crs)
-            )
-        )
-        extent.transform(
-            QgsCoordinateTransform(
-                QgsCoordinateReferenceSystem(str(crs)),
-                output_crs,
-                QgsProject.instance(),
-            )
-        )
+
+        geometry = self.get_geometry(parameters["EXTENT"], output_crs)
+
         filters = {
             "scientificName": parameters["SPECIES_NAME"],
             "basisOfRecord": [
@@ -229,15 +201,8 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
                 "PRESERVED_SPECIMEN",
                 "UNKNOWN",
             ],
-            "catalogNumber": "",
-            "publishingCountry": None,
-            "institutionCode": "",
-            "collectionCode": "",
-            "taxonKey": "",
-            "datasetKey": "",
-            "recordedBy": "",
             "eventDate": event_date,
-            "geometry": extent.boundingBox().asWktPolygon(),
+            "geometry": geometry,
             "hasCoordinate": "true",
             "limit": __api_per_page_records__,
         }
@@ -245,11 +210,24 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
 
         layer = QgsVectorLayer()
         if occ_count > int(__api_max_total_records__):
-            self.dialog_too_many_results()
+            feedback.reportError(
+                "The query returned more than "
+                + str(__api_max_total_records__)
+                + " records. Due to limitations in the GBIF infrastructure, very large queries are currently not supported.",  # noqa: E501
+                True,
+            )
         elif occ_count > 0:  # We have results
+            feedback.pushInfo(
+                "The query returned "
+                + str(occ_count)
+                + " records."
+            )
             if occ_count > int(__api_warning_threshold__):
-                if not show_warning():
-                    return  # User chose not to continue
+                feedback.pushWarning(
+                    "The number of records is very large (> "
+                    + str(__api_warning_threshold__)
+                    + "). It may takes some times"
+                )
             scientific_name = parameters["SPECIES_NAME"]
             layer = create_and_add_layer(project=None, name=scientific_name)
 
@@ -290,7 +268,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
 
         for f in layer.getFeatures():
             sink.addFeature(f, QgsFeatureSink.FastInsert)
-            
+
         return {self.OUTPUT: dest_id}
 
     def createInstance(self):
@@ -298,6 +276,52 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
 
     def error_message(self, msg):
         QMessageBox.critical(self, self.tr("Error"), msg)
+
+    def get_date_range(self, selection):
+        if selection == 0:
+            return "", ""
+        else:
+            end_time = QDateTime.currentDateTime()
+
+        if selection == 1:
+            day_range = -3652
+        elif selection == 2:
+            day_range = -365
+        elif selection == 3:
+            day_range = -182
+        elif selection == 4:
+            day_range = -31
+        elif selection == 5:
+            day_range = -7
+        start_time = QDateTime.currentDateTime().addDays(day_range)
+        return start_time, end_time
+
+    def get_geometry(self, extent, output_crs):
+        if extent is not None:
+            point_list = extent.split(" ")[0]
+            crs = extent.split(" ")[1][1:-1]
+            xmin = point_list.split(",")[0]
+            xmax = point_list.split(",")[1]
+            ymin = point_list.split(",")[2]
+            ymax = point_list.split(",")[3]
+            rect = QgsRectangle()
+            rect.setXMaximum(float(xmax))
+            rect.setXMinimum(float(xmin))
+            rect.setYMaximum(float(ymax))
+            rect.setYMinimum(float(ymin))
+            extent = QgsReferencedGeometry().fromReferencedRect(
+                QgsReferencedRectangle(rect, QgsCoordinateReferenceSystem(crs))
+            )
+            extent.transform(
+                QgsCoordinateTransform(
+                    QgsCoordinateReferenceSystem(str(crs)),
+                    output_crs,
+                    QgsProject.instance(),
+                )
+            )
+            return extent.boundingBox().asWktPolygon()
+        else:
+            return ""
 
     def create_url(self, params):
         request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
@@ -358,4 +382,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         # Decode data fetch from the get request and create a dictionnary.
         data_request = req_reply.content().data().decode()
         res = json.loads(data_request)
-        add_gbif_occ_to_layer(res["results"], layer)
+        try:
+            add_gbif_occ_to_layer(res["results"], layer)
+        except TypeError:
+            print(res["results"])

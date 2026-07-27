@@ -1,18 +1,18 @@
 from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtGui import QIcon
 
-from .qgisgbifapi_alg import OccurrencesExtractionQuick
+from .quick_extraction_alg import OccurrencesExtractionQuick
+from .complete_extraction_alg import OccurrencesExtractionComplete
 
 
 class Provider(QgsProcessingProvider):
 
     """ The provider of our plugin. """
-    
+
     def loadAlgorithms(self):
         """ Load each algorithm into the current provider. """
         self.addAlgorithm(OccurrencesExtractionQuick())
-        # add additional algorithms here
-        # self.addAlgorithm(MyOtherAlgorithm())
+        self.addAlgorithm(OccurrencesExtractionComplete())
 
     def id(self) -> str:
         """The ID of your plugin, used for identifying the provider.

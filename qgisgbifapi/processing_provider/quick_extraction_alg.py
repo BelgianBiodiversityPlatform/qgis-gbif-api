@@ -32,8 +32,7 @@ from qgis.core import (
     QgsProcessingParameterEnum,
 )
 from qgis.PyQt.QtNetwork import QNetworkRequest
-from qgis.PyQt.QtCore import QDateTime, QUrl
-from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.PyQt.QtCore import QDateTime, QUrl, QCoreApplication
 
 from qgisgbifapi.tool import (
     create_and_add_layer,
@@ -72,6 +71,18 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
     EXTENT = "EXTENT"
     SPECIES_NAME = "SPECIES_NAME"
     OPTIONS = "OPTIONS"
+
+    def tr(self, message: str) -> str:
+        """Get the translation for a string using Qt translation API.
+
+        :param message: String for translation.
+        :type message: str, QString
+
+        :returns: Translated version of message.
+        :rtype: str
+        """
+        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
+        return QCoreApplication.translate('GBIFOccurrences', message)
 
     def name(self) -> str:
         """
@@ -113,7 +124,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         should provide a basic description about what the algorithm does and
         the parameters and outputs associated with it.
         """
-        return "Extract GBIF's occurrences based on filters using GBIF's API"
+        return self.tr("Extract GBIF's occurrences based on filters using GBIF's API.\nThis processing algorithm is based on GBIF Occurrences plugin, this is the quick filters version. Only 3 filters are requested:\n- An extent\n- A species name\n- A time period")
 
     def initAlgorithm(self, config: Optional[dict[str, Any]] = None):
         """
@@ -125,13 +136,15 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterExtent(
-                self.EXTENT, "Extent", defaultValue=None, optional=True
+                self.EXTENT, self.tr("Extent"),
+                defaultValue=None,
+                optional=True,
             )
         )
         self.addParameter(
             QgsProcessingParameterString(
                 self.SPECIES_NAME,
-                "Species name",
+                self.tr("Species name"),
                 defaultValue=None,
                 multiLine=False,
                 optional=True,
@@ -140,17 +153,17 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterEnum(
                 self.OPTIONS,
-                "Date event",
+                self.tr("Date event"),
                 options=[
-                    "No date filter",
-                    "Last 10 years",
-                    "Last year",
-                    "Last 6 month",
-                    "Last month",
-                    "Last week",
+                    self.tr("No date filter"),
+                    self.tr("Last 10 years"),
+                    self.tr("Last year"),
+                    self.tr("Last 6 month"),
+                    self.tr("Last month"),
+                    self.tr("Last week"),
                 ],
                 allowMultiple=False,
-                defaultValue="No date filter",
+                defaultValue=self.tr("No date filter"),
             )
         )
 
@@ -182,7 +195,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
                 )
             else:
                 feedback.reportError(
-                    "Start date is greater than end date",  # noqa: E501
+                    self.tr("Start date is greater than end date"),  # noqa: E501
                     True,
                 )
                 return {}
@@ -216,23 +229,23 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         layer = QgsVectorLayer()
         if occ_count > int(__api_max_total_records__):
             feedback.reportError(
-                "The query returned more than "
+                self.tr("The query returned more than ")
                 + str(__api_max_total_records__)
-                + " records. Due to limitations in the GBIF infrastructure, very large queries are currently not supported.",  # noqa: E501
+                + self.tr(" records. Due to limitations in the GBIF infrastructure, very large queries are currently not supported."),  # noqa: E501
                 True,
             )
             return {}
         elif occ_count > 0:  # We have results
             feedback.pushInfo(
-                "The query returned "
+                self.tr("The query returned ")
                 + str(occ_count)
-                + " records."
+                + self.tr(" records.")
             )
             if occ_count > int(__api_warning_threshold__):
                 feedback.pushWarning(
-                    "The number of records is very large (> "
+                    self.tr("The number of records is very large (> ")
                     + str(__api_warning_threshold__)
-                    + "). It may takes some times"
+                    + self.tr("). It may takes some times")
                 )
             scientific_name = parameters["SPECIES_NAME"]
             layer = create_and_add_layer(project=None, name=scientific_name)
@@ -252,6 +265,12 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
                 # Stop the algorithm if cancel button has been clicked
                 if feedback.isCanceled():
                     break
+        else:
+            feedback.reportError(
+                self.tr("The query didn't returned record."),
+                True,
+            )
+            return {}
 
         (sink, dest_id) = self.parameterAsSink(
             parameters,
@@ -279,9 +298,6 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return self.__class__()
-
-    def error_message(self, msg):
-        QMessageBox.critical(self, self.tr("Error"), msg)
 
     def get_date_range(self, selection):
         if selection == 0:

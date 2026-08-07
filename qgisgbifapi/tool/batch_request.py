@@ -110,7 +110,7 @@ class BatchRequest(QObject):
                 else:
                     self._pending_obs += int(__api_per_page_records__)
                 self.dlg.show_progress(self._pending_obs, total_obs)
-                add_gbif_occ_to_layer(resp["results"], layer, None)
+                add_gbif_occ_to_layer(resp["results"], layer)
                 if self.dlg.stop:
                     self.dlg.stop = False
                     self.total_pages = 0

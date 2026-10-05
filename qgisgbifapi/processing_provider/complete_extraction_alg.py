@@ -10,8 +10,10 @@
 """
 
 from typing import Any, Optional
+from operator import itemgetter
 import json
 from qgis.core import (
+    QgsApplication,
     QgsProject,
     QgsCoordinateTransform,
     QgsReferencedGeometry,
@@ -26,14 +28,26 @@ from qgis.core import (
     QgsProcessingAlgorithm,
     QgsProcessingContext,
     QgsProcessingFeedback,
+    QgsProcessingParameterDateTime,
     QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterNumber,
     QgsProcessingParameterString,
     QgsProcessingParameterExtent,
-    QgsProcessingParameterDateTime,
+    QgsProcessingParameterEnum,
 )
 from qgis.PyQt.QtNetwork import QNetworkRequest
-from qgis.PyQt.QtCore import QDateTime, QUrl
-from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.PyQt.QtCore import (
+    QDateTime,
+    QUrl,
+    QCoreApplication,
+    QDir,
+    QFile,
+    QByteArray,
+    QIODevice,
+)
+
+if Qgis.QGIS_VERSION_INT >= 40000:
+    from qgis.PyQt.QtCore import QIODeviceBase
 
 from qgisgbifapi.tool import (
     create_and_add_layer,
@@ -48,6 +62,71 @@ from qgisgbifapi.__about__ import (
     __api_warning_threshold__,
     __api_per_page_records__,
 )
+
+COMBOBOX_ALL_LABEL = "-- All --"
+
+
+def get_countries():
+    countries = []
+    countries_dict = {}
+    countries.append(COMBOBOX_ALL_LABEL)
+    countries_dict[COMBOBOX_ALL_LABEL] = ""
+    path = QDir(QgsApplication.metadataPath()).absoluteFilePath(
+        "country_code_ISO_3166.csv"
+    )
+    file = QFile(path)
+    if Qgis.QGIS_VERSION_INT >= 40000:
+        open_mode = QIODeviceBase.OpenModeFlag.ReadOnly
+    else:
+        open_mode = open_mode = QIODevice.ReadOnly
+    if not file.open(open_mode):
+        print(
+            "Error while opening the CSV file: {}, {} ".format(
+                path,
+                file.errorString()
+            )
+        )
+        return countries, countries_dict
+
+    file.readLine()
+    while not file.atEnd():
+        line = file.readLine()
+        items = line.split(QByteArray(",".encode()))
+        if len(items) > 9:
+            name = (
+                items[0].trimmed().data().decode()
+                + " "
+                + items[1].trimmed().data().decode()
+            )
+            alpha2 = items[2].trimmed().data().decode()
+        else:
+            name = items[0].trimmed().data().decode()
+            alpha2 = items[1].trimmed().data().decode()
+        countries.append(name.strip('"'))
+        countries_dict[name.strip('"')] = alpha2
+    file.close()
+    return countries, countries_dict
+
+
+countries, countries_dict = get_countries()
+BOR = {
+    "Fossilized specimen": "FOSSIL_SPECIMEN",
+    "Human observation": "HUMAN_OBSERVATION",
+    "Literature": "LITERATURE",
+    "Living specimen": "LIVING_SPECIMEN",
+    "Machine observation": "MACHINE_OBSERVATION",
+    "Material citation": "MATERIAL_CITATION",
+    "Material sample": "MATERIAL_SAMPLE",
+    "Occurrence": "OCCURRENCE",
+    "Observation": "OBSERVATION",
+    "Preserved specimen": "PRESERVED_SPECIMEN",
+    "Unknown": "UNKNOWN",
+}
+default_bor = []
+n = 0
+for elem in BOR:
+    default_bor.append(n)
+    n = n + 1
 
 
 class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
@@ -70,9 +149,31 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
     OUTPUT = "OUTPUT"
     EXTENT = "EXTENT"
+    COUNTRY = "COUNTRY"
+    GADM_CODE = "GADM_CODE"
     SPECIES_NAME = "SPECIES_NAME"
-    START_DATETIME = "START_DATETIME"
-    END_DATETIME = "END_DATETIME"
+    SPECIES_KEY = "SPECIES_KEY"
+    BASIS_OF_RECORD = "BASIS_OF_RECORD"
+    CATALOG_NUMBER = "CATALOG_NUMBER"
+    RECORDED_BY = "RECORDED_BY"
+    PUBLISHING_COUNTRY = "PUBLISHING_COUNTRY"
+    INSTITUTION_CODE = "INSTITUTION_CODE"
+    COLLECTION_CODE = "COLLECTION_CODE"
+    DATASET_KEY = "DATASET_KEY"
+    START_DATE = "START_DATE"
+    END_DATE = "END_DATE"
+
+    def tr(self, message: str) -> str:
+        """Get the translation for a string using Qt translation API.
+
+        :param message: String for translation.
+        :type message: str, QString
+
+        :returns: Translated version of message.
+        :rtype: str
+        """
+        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
+        return QCoreApplication.translate('GBIFOccurrences', message)
 
     def name(self) -> str:
         """
@@ -114,7 +215,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         should provide a basic description about what the algorithm does and
         the parameters and outputs associated with it.
         """
-        return "Extract GBIF's occurrences based on filters using GBIF's API"
+        return self.tr("Extract GBIF's occurrences based on filters using GBIF's API.\nThis processing algorithm is based on GBIF Occurrences plugin, this is the complete filters version.")  # noqa: E501
 
     def initAlgorithm(self, config: Optional[dict[str, Any]] = None):
         """
@@ -124,40 +225,191 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
         self.ntwk_requester = QgsBlockingNetworkRequest()
 
-        self.addParameter(
-            QgsProcessingParameterExtent(
-                self.EXTENT, "Extent", defaultValue=None, optional=True
-            )
+        extent = QgsProcessingParameterExtent(
+                self.EXTENT, self.tr("Extent"),
+                defaultValue=None,
+                optional=True,
         )
-        self.addParameter(
-            QgsProcessingParameterString(
-                self.SPECIES_NAME,
-                "Species name",
+        extent.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(extent)
+
+        country = QgsProcessingParameterEnum(
+                self.COUNTRY, self.tr("Country"),
+                defaultValue=COMBOBOX_ALL_LABEL,
+                optional=True,
+                options=countries,
+            )
+
+        country.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(country)
+
+        gadm = QgsProcessingParameterString(
+                self.GADM_CODE,
+                self.tr("GADM.org Area Code"),
                 defaultValue=None,
                 multiLine=False,
                 optional=True,
             )
-        )
-        self.addParameter(
-            QgsProcessingParameterDateTime(
-                self.START_DATETIME,
-                "Start Datetime",
-                type=QgsProcessingParameterDateTime.Date,
-                defaultValue=QDateTime.currentDateTime(),
+        gadm.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(gadm)
+
+        species = QgsProcessingParameterString(
+                self.SPECIES_NAME,
+                self.tr("Species name"),
+                defaultValue=None,
+                multiLine=False,
+                optional=True,
+            )
+        species.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(species)
+
+        species_key = QgsProcessingParameterNumber(
+                self.SPECIES_KEY,
+                self.tr("Taxon key"),
+                defaultValue=None,
+                type=Qgis.ProcessingNumberParameterType.Integer,
+                optional=True,
+                minValue=0,
+                maxValue=999999,
+            )
+        species_key.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(species_key)
+
+        start_date = QgsProcessingParameterDateTime(
+                self.START_DATE,
+                self.tr("Start date"),
+                type=Qgis.ProcessingDateTimeParameterDataType.Date,
+                defaultValue=None,
                 optional=True,
                 maxValue=QDateTime.currentDateTime(),
             )
-        )
-        self.addParameter(
-            QgsProcessingParameterDateTime(
-                self.END_DATETIME,
-                "End Datetime",
-                type=QgsProcessingParameterDateTime.Date,
-                defaultValue=QDateTime.currentDateTime(),
+        start_date.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(start_date)
+
+        end_date = QgsProcessingParameterDateTime(
+                self.END_DATE,
+                self.tr("End date"),
+                type=Qgis.ProcessingDateTimeParameterDataType.Date,
+                defaultValue=None,
                 optional=True,
                 maxValue=QDateTime.currentDateTime(),
             )
-        )
+        end_date.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(end_date)
+
+        bor = QgsProcessingParameterEnum(
+                self.BASIS_OF_RECORD,
+                self.tr("Basis of record"),
+                defaultValue=default_bor,
+                optional=True,
+                allowMultiple=True,
+                options=BOR,
+            )
+
+        bor.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(bor)
+
+        catalog_key = QgsProcessingParameterString(
+                self.CATALOG_NUMBER,
+                self.tr("Catalog number"),
+                defaultValue=None,
+                multiLine=False,
+                optional=True,
+            )
+        catalog_key.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(catalog_key)
+
+        recorder = QgsProcessingParameterString(
+                self.RECORDED_BY,
+                self.tr("Recorded by"),
+                defaultValue=None,
+                multiLine=False,
+                optional=True,
+            )
+        recorder.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(recorder)
+
+        pub_country = QgsProcessingParameterEnum(
+                self.PUBLISHING_COUNTRY, self.tr("Publication country"),
+                defaultValue=COMBOBOX_ALL_LABEL,
+                optional=True,
+                options=countries,
+            )
+
+        pub_country.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(pub_country)
+
+        institution = QgsProcessingParameterString(
+                self.INSTITUTION_CODE,
+                self.tr("Institution code"),
+                defaultValue=None,
+                multiLine=False,
+                optional=True,
+            )
+        institution.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(institution)
+
+        collection = QgsProcessingParameterString(
+                self.COLLECTION_CODE,
+                self.tr("Collection code"),
+                defaultValue=None,
+                multiLine=False,
+                optional=True,
+            )
+        collection.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(collection)
+
+        dataset = QgsProcessingParameterString(
+                self.DATASET_KEY,
+                self.tr("Dataset key"),
+                defaultValue=None,
+                multiLine=False,
+                optional=True,
+            )
+        dataset.setHelp(self.tr(
+            "Numeric field holding the buffer distance in layer units. "
+            "Null or non-positive values cause the feature to be skipped."
+        ))
+        self.addParameter(dataset)
 
         # We add a feature sink in which to store our processed features (this
         # usually takes the form of a newly created vector layer when the
@@ -176,76 +428,76 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         Here is where the processing itself takes place.
         """
         output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
-
-        if (
-            parameters["START_DATETIME"] is not None
-            and parameters["END_DATETIME"] is not None
-        ):
-            if parameters["END_DATETIME"] >= parameters["START_DATETIME"]:
+        
+        if parameters["START_DATE"] is not None and parameters["END_DATE"] is not None:  # noqa: E501
+            if parameters["END_DATE"] >= parameters["START_DATE"]:
                 event_date = "{min},{max}".format(
-                    min=str(parameters["START_DATETIME"].toString("yyyy-MM-dd")),  # noqa: E501
-                    max=str(parameters["END_DATETIME"].toString("yyyy-MM-dd")),
+                    min=str(parameters["START_DATE"].toString("yyyy-MM-dd")),
+                    max=str(parameters["END_DATE"].toString("yyyy-MM-dd")),
                 )
             else:
                 feedback.reportError(
-                    "Start date is greater than end date",
+                    self.tr("Start date is greater than end date"),  # noqa: E501
                     True,
                 )
                 return {}
-        elif parameters["START_DATETIME"] is not None:
-            event_date = str(parameters["START_DATETIME"].toString("yyyy-MM-dd"))  # noqa: E501
-            feedback.pushInfo("Only one date filled :" + str(event_date))
-        elif parameters["END_DATETIME"] is not None:
-            event_date = str(parameters["END_DATETIME"].toString("yyyy-MM-dd"))
-            feedback.pushInfo("Only one date filled :" + str(event_date))
+        elif parameters["START_DATE"] is not None:
+            event_date = "{min},{max}".format(
+                min=str(parameters["START_DATE"].toString("yyyy-MM-dd")),
+                max=str(QDateTime.currentDateTime().toString("yyyy-MM-dd")),
+            )
+        elif parameters["END_DATE"] is not None:
+            event_date = "{min},{max}".format(
+                min=str(QDateTime.fromString('1900-01-01', "yyyy-MM-dd").toString("yyyy-MM-dd")),  # noqa: E501
+                max=str(parameters["END_DATE"].toString("yyyy-MM-dd")),
+            )
         else:
             event_date = ""
-            feedback.pushInfo("No date filled, no temporal filter")
 
         geometry = self.get_geometry(parameters["EXTENT"], output_crs)
 
         filters = {
             "scientificName": parameters["SPECIES_NAME"],
-            "basisOfRecord": [
-                "FOSSIL_SPECIMEN",
-                "HUMAN_OBSERVATION",
-                "LITERATURE",
-                "LIVING_SPECIMEN",
-                "MACHINE_OBSERVATION",
-                "MATERIAL_CITATION",
-                "MATERIAL_SAMPLE",
-                "OCCURRENCE",
-                "OBSERVATION",
-                "PRESERVED_SPECIMEN",
-                "UNKNOWN",
-            ],
+            "basisOfRecord": list(itemgetter(*parameters["BASIS_OF_RECORD"])(list(BOR.values()))),
+            "catalogNumber": parameters["CATALOG_NUMBER"],
+            "publishingCountry": list(countries_dict.values())[parameters["PUBLISHING_COUNTRY"]],
+            "institutionCode": parameters["INSTITUTION_CODE"],
+            "collectionCode": parameters["COLLECTION_CODE"],
             "eventDate": event_date,
-            "geometry": geometry,
+            "taxonKey": parameters["SPECIES_KEY"],
+            "datasetKey": parameters["DATASET_KEY"],
+            "recordedBy": parameters["RECORDED_BY"],
+            # "geometry": geometry,
+            "country": list(countries_dict.values())[parameters["COUNTRY"]],
+            "gadm_gid": parameters["GADM_CODE"],
             "hasCoordinate": "true",
             "limit": __api_per_page_records__,
         }
-        occ_count = self.occurrence_counting(_finalize_filters(filters))
+
+        feedback.pushInfo(str(filters))
+
+        occ_count = self.occurrence_counting(_finalize_filters(filters), feedback)
 
         layer = QgsVectorLayer()
         if occ_count > int(__api_max_total_records__):
             feedback.reportError(
-                "The query returned more than "
+                self.tr("The query returned more than ")
                 + str(__api_max_total_records__)
-                + " records. Due to limitations in the GBIF infrastructure, very large queries are currently not supported.",  # noqa: E501
+                + self.tr(" records. Due to limitations in the GBIF infrastructure, very large queries are currently not supported."),  # noqa: E501
                 True,
             )
             return {}
         elif occ_count > 0:  # We have results
             feedback.pushInfo(
-                "The query returned "
+                self.tr("The query returned ")
                 + str(occ_count)
-                + " records."
+                + self.tr(" records.")
             )
             if occ_count > int(__api_warning_threshold__):
                 feedback.pushWarning(
-                    "The number of records is very large (> "
+                    self.tr("The number of records is very large (> ")
                     + str(__api_warning_threshold__)
-                    + "). It may takes some times"
+                    + self.tr("). It may takes some times")
                 )
             scientific_name = parameters["SPECIES_NAME"]
             layer = create_and_add_layer(project=None, name=scientific_name)
@@ -255,7 +507,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
             else:
                 total_pages = (
                     int(occ_count / int(__api_per_page_records__)) + 1
-                )  # noqa: E501
+                )
 
             for page in range(total_pages):
                 filters["offset"] = int(page) * int(__api_per_page_records__)
@@ -265,6 +517,12 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 # Stop the algorithm if cancel button has been clicked
                 if feedback.isCanceled():
                     break
+        else:
+            feedback.reportError(
+                self.tr("The query didn't returned record."),
+                True,
+            )
+            return {}
 
         (sink, dest_id) = self.parameterAsSink(
             parameters,
@@ -292,9 +550,6 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return self.__class__()
-
-    def error_message(self, msg):
-        QMessageBox.critical(self, self.tr("Error"), msg)
 
     def get_geometry(self, extent, output_crs):
         if extent is not None:
@@ -341,7 +596,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 )  # noqa: E501
         return request_url[:-1]
 
-    def occurrence_counting(self, params):
+    def occurrence_counting(self, params, feedback):
         params["offset"] = 0
         request_url = self.create_url(params)
         request = QNetworkRequest(QUrl(request_url))
@@ -359,6 +614,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         req_reply = self.ntwk_requester.reply()
         # Decode data fetch from the get request and create a dictionnary.
         data_request = req_reply.content().data().decode()
+        # feedback.pushInfo(str(data_request))
         res = json.loads(data_request)
         # Get the observation number in the extent based on filters.
         nb_obs = res["count"]

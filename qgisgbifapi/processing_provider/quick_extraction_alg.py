@@ -70,7 +70,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
     EXTENT = "EXTENT"
     SPECIES_NAME = "SPECIES_NAME"
-    OPTIONS = "OPTIONS"
+    DATE_RANGE = "DATE_RANGE"
 
     def tr(self, message: str) -> str:
         """Get the translation for a string using Qt translation API.
@@ -124,7 +124,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         should provide a basic description about what the algorithm does and
         the parameters and outputs associated with it.
         """
-        return self.tr("Extract GBIF's occurrences based on filters using GBIF's API.\nThis processing algorithm is based on GBIF Occurrences plugin, this is the quick filters version. Only 3 filters are requested:\n- An extent\n- A species name\n- A time period")
+        return self.tr("Extract GBIF's occurrences based on filters using GBIF's API.\nThis processing algorithm is based on GBIF Occurrences plugin, this is the quick filters version. Only 3 filters are requested:\n- An extent\n- A species scientific name\n- A time period")  # noqa: E501
 
     def initAlgorithm(self, config: Optional[dict[str, Any]] = None):
         """
@@ -152,7 +152,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         )
         self.addParameter(
             QgsProcessingParameterEnum(
-                self.OPTIONS,
+                self.DATE_RANGE,
                 self.tr("Date event"),
                 options=[
                     self.tr("No date filter"),
@@ -185,7 +185,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         """
         output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
-        start_time, end_time = self.get_date_range(parameters["OPTIONS"])
+        start_time, end_time = self.get_date_range(parameters["DATE_RANGE"])
 
         if start_time != "" and end_time != "":
             if end_time >= start_time:
@@ -316,7 +316,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         elif selection == 5:
             day_range = -7
         start_time = QDateTime.currentDateTime().addDays(day_range)
-        return start_time, end_time     
+        return start_time, end_time
 
     def get_geometry(self, extent, output_crs):
         if extent is not None:

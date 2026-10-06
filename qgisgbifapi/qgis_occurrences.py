@@ -28,7 +28,7 @@ from qgis.PyQt.QtWidgets import QAction
 from .processing_provider.provider import Provider
 # Import plugin class and vars
 from qgisgbifapi.gui import GBIFOccurrencesDialog
-from qgisgbifapi.__about__ import __api_timeout__
+from qgisgbifapi.__about__ import __api_timeout__, __icon_path__
 
 
 class GBIFOccurrences(object):
@@ -50,12 +50,7 @@ class GBIFOccurrences(object):
         self.manager.setTimeout(int(__api_timeout__))
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
-        ressource_path = "resources"
-        self.img_path = os.path.join(
-            self.plugin_dir,
-            ressource_path,
-            'img',
-        )
+
         # initialize locale
         locale = QSettings().value('locale/userLocale')[0:2]
         locale_path = os.path.join(
@@ -103,7 +98,6 @@ class GBIFOccurrences(object):
 
     def add_action(
         self,
-        icon_path,
         text,
         callback,
         enabled_flag=True,
@@ -114,10 +108,6 @@ class GBIFOccurrences(object):
         parent=None,
     ):
         """Add a toolbar icon to the InaSAFE toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
 
         :param text: Text that should be shown in menu items for this action.
         :type text: str
@@ -152,7 +142,7 @@ class GBIFOccurrences(object):
         :rtype: QAction
         """
 
-        icon = QIcon(icon_path)
+        icon = QIcon(str(__icon_path__))
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
         action.setEnabled(enabled_flag)
@@ -182,12 +172,7 @@ class GBIFOccurrences(object):
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = os.path.join(
-            self.img_path,
-            'icon.png',
-        )
         self.add_action(
-            icon_path,
             text=self.tr(u'Load GBIF occurrences'),
             callback=self.run,
             parent=self.iface.mainWindow())

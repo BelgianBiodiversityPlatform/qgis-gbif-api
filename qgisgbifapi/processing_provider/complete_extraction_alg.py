@@ -151,7 +151,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
     EXTENT = "EXTENT"
     COUNTRY = "COUNTRY"
     GADM_CODE = "GADM_CODE"
-    SPECIES_NAME = "SPECIES_NAME"
+    SCIENTIFIC_NAME = "SCIENTIFIC_NAME"
     SPECIES_KEY = "SPECIES_KEY"
     BASIS_OF_RECORD = "BASIS_OF_RECORD"
     CATALOG_NUMBER = "CATALOG_NUMBER"
@@ -215,7 +215,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         should provide a basic description about what the algorithm does and
         the parameters and outputs associated with it.
         """
-        return self.tr("Extract GBIF's occurrences based on filters using GBIF's API.\nThis processing algorithm is based on GBIF Occurrences plugin, this is the complete filters version.")  # noqa: E501
+        return self.tr("Extract GBIF's occurrences based on filters using GBIF's API.\nThis processing algorithm is based on GBIF Occurrences plugin, this is the complete filters version.  filters are requested:\n- An extent or a country with a possible GADM identifier, if both are completed, only the extent will be prioritized. \n- A species scientific name or a taxon key, if both are specified, taxon key is prioritized\n- A time period, with two date\n- A list of basis of record\n- A catalog number\n- A recorder name\n- A publishing country\n- An institution code\n- A collection code\n- A dataset key")  # noqa: E501
 
     def initAlgorithm(self, config: Optional[dict[str, Any]] = None):
         """
@@ -231,8 +231,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 optional=True,
         )
         extent.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "Searches for occurrences inside an extent."
         ))
         self.addParameter(extent)
 
@@ -244,8 +243,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
             )
 
         country.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "The country in which the occurrence was recorded."
         ))
         self.addParameter(country)
 
@@ -257,21 +255,19 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 optional=True,
             )
         gadm.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "A GADM geographic identifier at any level,<br>for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1"  # noqa: E501
         ))
         self.addParameter(gadm)
 
         species = QgsProcessingParameterString(
-                self.SPECIES_NAME,
-                self.tr("Species name"),
+                self.SCIENTIFIC_NAME,
+                self.tr("Scientific name"),
                 defaultValue=None,
                 multiLine=False,
                 optional=True,
             )
         species.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "A scientific name from the GBIF backbone or the specified checklist (see checklistKey parameter). All included and synonym taxa are included in the search. Under the hood a call to the species match service is done first to retrieve a taxonKey. Only unique scientific names will return results, homonyms (many monomials) return nothing! Consider to use the taxonKey parameter instead and the species match service directly."  # noqa: E501
         ))
         self.addParameter(species)
 
@@ -282,11 +278,10 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 type=Qgis.ProcessingNumberParameterType.Integer,
                 optional=True,
                 minValue=0,
-                maxValue=999999,
+                maxValue=999999999,
             )
         species_key.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+                'This is the primary id used to identify a taxon, "0" means this filter is not used.<br><b>Must be an integer</b>'  # noqa: E501
         ))
         self.addParameter(species_key)
 
@@ -297,10 +292,10 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 defaultValue=None,
                 optional=True,
                 maxValue=QDateTime.currentDateTime(),
+                minValue=QDateTime.fromString('1500-01-01', "yyyy-MM-dd"),
             )
         start_date.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "Minimum occurrence date. If not filled but End date is filled, Start date will be '1500-01-01'.<br><b>Must be smaller than End date</b>"  # noqa: E501
         ))
         self.addParameter(start_date)
 
@@ -311,10 +306,10 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 defaultValue=None,
                 optional=True,
                 maxValue=QDateTime.currentDateTime(),
+                minValue=QDateTime.fromString('1500-01-01', "yyyy-MM-dd"),
             )
         end_date.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "Maximum occurrence date. If not filled but Start date is filled, End date will be current date.<br><b>Must be greater than Start date</b>"  # noqa: E501
         ))
         self.addParameter(end_date)
 
@@ -328,8 +323,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
             )
 
         bor.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "Basis of record is a Darwin Core term that refers to the specific nature of the record."  # noqa: E501
         ))
         self.addParameter(bor)
 
@@ -341,8 +335,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 optional=True,
             )
         catalog_key.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "An identifier of any form assigned by the source within a physical collection or digital dataset for the record which may not be unique,<br>but should be fairly unique in combination with the institution and collection code."  # noqa: E501
         ))
         self.addParameter(catalog_key)
 
@@ -354,21 +347,19 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 optional=True,
             )
         recorder.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "The person who recorded the occurrence."
         ))
         self.addParameter(recorder)
 
         pub_country = QgsProcessingParameterEnum(
-                self.PUBLISHING_COUNTRY, self.tr("Publication country"),
+                self.PUBLISHING_COUNTRY, self.tr("Publishing country"),
                 defaultValue=COMBOBOX_ALL_LABEL,
                 optional=True,
                 options=countries,
             )
 
         pub_country.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "The owning organization's country."
         ))
         self.addParameter(pub_country)
 
@@ -380,8 +371,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 optional=True,
             )
         institution.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "An identifier of any form assigned by the source to<br>identify the institution the record belongs to.<br>Not guaranteed to be unique."  # noqa: E501
         ))
         self.addParameter(institution)
 
@@ -393,8 +383,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 optional=True,
             )
         collection.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "An identifier of any form assigned by the source to<br>identify the physical collection or digital dataset uniquely<br>within the context of an institution."  # noqa: E501
         ))
         self.addParameter(collection)
 
@@ -406,8 +395,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 optional=True,
             )
         dataset.setHelp(self.tr(
-            "Numeric field holding the buffer distance in layer units. "
-            "Null or non-positive values cause the feature to be skipped."
+            "The occurrence dataset key (a UUID)."
         ))
         self.addParameter(dataset)
 
@@ -428,7 +416,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         Here is where the processing itself takes place.
         """
         output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
-        
+
         if parameters["START_DATE"] is not None and parameters["END_DATE"] is not None:  # noqa: E501
             if parameters["END_DATE"] >= parameters["START_DATE"]:
                 event_date = "{min},{max}".format(
@@ -437,7 +425,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 )
             else:
                 feedback.reportError(
-                    self.tr("Start date is greater than end date"),  # noqa: E501
+                    self.tr("Start date is greater than End date"),  # noqa: E501
                     True,
                 )
                 return {}
@@ -448,35 +436,64 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
             )
         elif parameters["END_DATE"] is not None:
             event_date = "{min},{max}".format(
-                min=str(QDateTime.fromString('1900-01-01', "yyyy-MM-dd").toString("yyyy-MM-dd")),  # noqa: E501
+                min=str(QDateTime.fromString('1752-09-14', "yyyy-MM-dd").toString("yyyy-MM-dd")),  # noqa: E501
                 max=str(parameters["END_DATE"].toString("yyyy-MM-dd")),
             )
         else:
             event_date = ""
 
         geometry = self.get_geometry(parameters["EXTENT"], output_crs)
-
-        filters = {
-            "scientificName": parameters["SPECIES_NAME"],
-            "basisOfRecord": list(itemgetter(*parameters["BASIS_OF_RECORD"])(list(BOR.values()))),
-            "catalogNumber": parameters["CATALOG_NUMBER"],
-            "publishingCountry": list(countries_dict.values())[parameters["PUBLISHING_COUNTRY"]],
-            "institutionCode": parameters["INSTITUTION_CODE"],
-            "collectionCode": parameters["COLLECTION_CODE"],
-            "eventDate": event_date,
-            "taxonKey": parameters["SPECIES_KEY"],
-            "datasetKey": parameters["DATASET_KEY"],
-            "recordedBy": parameters["RECORDED_BY"],
-            # "geometry": geometry,
-            "country": list(countries_dict.values())[parameters["COUNTRY"]],
-            "gadm_gid": parameters["GADM_CODE"],
-            "hasCoordinate": "true",
-            "limit": __api_per_page_records__,
-        }
+        if geometry is not None:
+            filters = {
+                "scientificName": parameters["SCIENTIFIC_NAME"],
+                "basisOfRecord": list(
+                    itemgetter(*parameters["BASIS_OF_RECORD"])(
+                        list(BOR.values())
+                    )
+                ),
+                "catalogNumber": parameters["CATALOG_NUMBER"],
+                "publishingCountry": list(
+                    countries_dict.values()
+                )[parameters["PUBLISHING_COUNTRY"]],
+                "institutionCode": parameters["INSTITUTION_CODE"],
+                "collectionCode": parameters["COLLECTION_CODE"],
+                "eventDate": event_date,
+                "taxonKey": parameters["SPECIES_KEY"],
+                "datasetKey": parameters["DATASET_KEY"],
+                "recordedBy": parameters["RECORDED_BY"],
+                "geometry": geometry,
+                "hasCoordinate": "true",
+                "limit": __api_per_page_records__,
+            }
+        else:
+            filters = {
+                "scientificName": parameters["SCIENTIFIC_NAME"],
+                "basisOfRecord": list(
+                    itemgetter(*parameters["BASIS_OF_RECORD"])(
+                        list(BOR.values())
+                    )
+                ),
+                "catalogNumber": parameters["CATALOG_NUMBER"],
+                "publishingCountry": list(
+                    countries_dict.values()
+                )[parameters["PUBLISHING_COUNTRY"]],
+                "institutionCode": parameters["INSTITUTION_CODE"],
+                "collectionCode": parameters["COLLECTION_CODE"],
+                "eventDate": event_date,
+                "taxonKey": parameters["SPECIES_KEY"],
+                "datasetKey": parameters["DATASET_KEY"],
+                "recordedBy": parameters["RECORDED_BY"],
+                "country": list(
+                    countries_dict.values()
+                )[parameters["COUNTRY"]],
+                "gadm_gid": parameters["GADM_CODE"],
+                "hasCoordinate": "true",
+                "limit": __api_per_page_records__,
+            }
 
         feedback.pushInfo(str(filters))
 
-        occ_count = self.occurrence_counting(_finalize_filters(filters), feedback)
+        occ_count = self.occurrence_counting(_finalize_filters(filters))
 
         layer = QgsVectorLayer()
         if occ_count > int(__api_max_total_records__):
@@ -499,7 +516,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                     + str(__api_warning_threshold__)
                     + self.tr("). It may takes some times")
                 )
-            scientific_name = parameters["SPECIES_NAME"]
+            scientific_name = parameters["SCIENTIFIC_NAME"]
             layer = create_and_add_layer(project=None, name=scientific_name)
 
             if int(occ_count / int(__api_per_page_records__)) == 1:
@@ -596,7 +613,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                 )  # noqa: E501
         return request_url[:-1]
 
-    def occurrence_counting(self, params, feedback):
+    def occurrence_counting(self, params):
         params["offset"] = 0
         request_url = self.create_url(params)
         request = QNetworkRequest(QUrl(request_url))
@@ -614,7 +631,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         req_reply = self.ntwk_requester.reply()
         # Decode data fetch from the get request and create a dictionnary.
         data_request = req_reply.content().data().decode()
-        # feedback.pushInfo(str(data_request))
+
         res = json.loads(data_request)
         # Get the observation number in the extent based on filters.
         nb_obs = res["count"]

@@ -69,7 +69,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
 
     OUTPUT = "OUTPUT"
     EXTENT = "EXTENT"
-    SPECIES_NAME = "SPECIES_NAME"
+    SCIENTIFIC_NAME = "SCIENTIFIC_NAME"
     DATE_RANGE = "DATE_RANGE"
 
     def tr(self, message: str) -> str:
@@ -134,38 +134,46 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
 
         self.ntwk_requester = QgsBlockingNetworkRequest()
 
-        self.addParameter(
-            QgsProcessingParameterExtent(
+        extent = QgsProcessingParameterExtent(
                 self.EXTENT, self.tr("Extent"),
                 defaultValue=None,
                 optional=True,
-            )
         )
-        self.addParameter(
-            QgsProcessingParameterString(
-                self.SPECIES_NAME,
-                self.tr("Species name"),
+        extent.setHelp(self.tr(
+            "Searches for occurrences inside an extent."
+        ))
+        self.addParameter(extent)
+
+        species = QgsProcessingParameterString(
+                self.SCIENTIFIC_NAME,
+                self.tr("Scientific name"),
                 defaultValue=None,
                 multiLine=False,
                 optional=True,
             )
+        species.setHelp(self.tr(
+            "A scientific name from the GBIF backbone or the specified checklist (see checklistKey parameter). All included and synonym taxa are included in the search. Under the hood a call to the species match service is done first to retrieve a taxonKey. Only unique scientific names will return results, homonyms (many monomials) return nothing! Consider to use the taxonKey parameter instead and the species match service directly."  # noqa: E501
+        ))
+        self.addParameter(species)
+
+        date_range = QgsProcessingParameterEnum(
+            self.DATE_RANGE,
+            self.tr("Date event"),
+            options=[
+                self.tr("No date filter"),
+                self.tr("Last 10 years"),
+                self.tr("Last year"),
+                self.tr("Last 6 month"),
+                self.tr("Last month"),
+                self.tr("Last week"),
+            ],
+            allowMultiple=False,
+            defaultValue=self.tr("No date filter"),
         )
-        self.addParameter(
-            QgsProcessingParameterEnum(
-                self.DATE_RANGE,
-                self.tr("Date event"),
-                options=[
-                    self.tr("No date filter"),
-                    self.tr("Last 10 years"),
-                    self.tr("Last year"),
-                    self.tr("Last 6 month"),
-                    self.tr("Last month"),
-                    self.tr("Last week"),
-                ],
-                allowMultiple=False,
-                defaultValue=self.tr("No date filter"),
-            )
-        )
+        date_range.setHelp(self.tr(
+            "Select one value from the list. Every value max date is the current date. For example 'last month' date range will fetch all occurrences collected since the last 31 days."  # noqa: E501
+        ))
+        self.addParameter(date_range)
 
         # We add a feature sink in which to store our processed features (this
         # usually takes the form of a newly created vector layer when the
@@ -205,7 +213,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         geometry = self.get_geometry(parameters["EXTENT"], output_crs)
 
         filters = {
-            "scientificName": parameters["SPECIES_NAME"],
+            "scientificName": parameters["SCIENTIFIC_NAME"],
             "basisOfRecord": [
                 "FOSSIL_SPECIMEN",
                 "HUMAN_OBSERVATION",
@@ -247,7 +255,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
                     + str(__api_warning_threshold__)
                     + self.tr("). It may takes some times")
                 )
-            scientific_name = parameters["SPECIES_NAME"]
+            scientific_name = parameters["SCIENTIFIC_NAME"]
             layer = create_and_add_layer(project=None, name=scientific_name)
 
             if int(occ_count / int(__api_per_page_records__)) == 1:

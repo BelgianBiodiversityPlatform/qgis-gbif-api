@@ -3,6 +3,7 @@ from qgis.PyQt.QtGui import QIcon
 
 from .quick_extraction_alg import OccurrencesExtractionQuick
 from .complete_extraction_alg import OccurrencesExtractionComplete
+from qgisgbifapi.__about__ import __icon_path__
 
 
 class Provider(QgsProcessingProvider):
@@ -34,4 +35,4 @@ class Provider(QgsProcessingProvider):
         """Should return a QIcon which is used for your provider inside
         the Processing toolbox.
         """
-        return QgsProcessingProvider.icon(self)
+        return QIcon(str(__icon_path__))

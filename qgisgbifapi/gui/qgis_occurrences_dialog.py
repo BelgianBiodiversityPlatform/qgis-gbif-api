@@ -337,11 +337,24 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                     "geometry": self.rectangle_tool.new_extent.asWktPolygon(),
                 }
             except AttributeError:
-                self.error_message(
-                    self.tr(
-                        "GBIF Error: No bounding box drawned on map canvas, press the dedicated button."  # noqa: E501
-                    )
-                )
+                return {
+                    "scientificName": self.scientificNameField.text(),
+                    "basisOfRecord": self.basisComboBox.checkedItemsData(),
+                    "catalogNumber": self.catalogNumberField.text(),
+                    "publishingCountry": _get_selected_country_code(
+                        self.publishingCountryComboBox
+                    ),
+                    "institutionCode": self.institutionCodeField.text(),
+                    "collectionCode": self.collectionCodeField.text(),
+                    "eventDate": event_date,
+                    "taxonKey": (
+                        str(self.taxonKeyField.value())
+                        if self.taxonKeyField.value() != 0
+                        else ""
+                    ),
+                    "datasetKey": self.datasetKeyField.text(),
+                    "recordedBy": self.recordedByField.text(),
+                }
 
     def localisation_selection_ui(self):
         if self.boundariesCheckBox.isChecked():

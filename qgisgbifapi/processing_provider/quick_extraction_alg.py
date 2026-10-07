@@ -8,9 +8,10 @@
 *                                                                         *
 ***************************************************************************
 """
-
-from typing import Any, Optional
+import datetime
 import json
+from typing import Any, Optional
+
 from qgis.core import (
     QgsProject,
     QgsCoordinateTransform,
@@ -178,8 +179,18 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         # We add a feature sink in which to store our processed features (this
         # usually takes the form of a newly created vector layer when the
         # algorithm is run in QGIS).
+        today = datetime.datetime.now()
+        year = today.year
+        month = today.strftime("%m")
+        day = today.strftime("%d")
         self.addParameter(
-            QgsProcessingParameterFeatureSink(self.OUTPUT, "GBIF Occurrences")
+            QgsProcessingParameterFeatureSink(self.OUTPUT, (
+                    str(year)
+                    + str(month)
+                    + str(day)
+                    + "_GBIF_Occurences"
+                )
+            )
         )
 
     def processAlgorithm(

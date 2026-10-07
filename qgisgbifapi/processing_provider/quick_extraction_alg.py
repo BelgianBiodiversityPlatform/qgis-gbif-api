@@ -42,6 +42,7 @@ from qgisgbifapi.tool import (
 )
 
 from qgisgbifapi.__about__ import (
+    __api_crs__,
     __api_endpoint__,
     __api_occurrences_search__,
     __api_max_total_records__,
@@ -202,7 +203,7 @@ class OccurrencesExtractionQuick(QgsProcessingAlgorithm):
         """
         Here is where the processing itself takes place.
         """
-        output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
+        output_crs = QgsCoordinateReferenceSystem("EPSG:" + str(__api_crs__))
 
         start_time, end_time = self.get_date_range(parameters["DATE_RANGE"])
 

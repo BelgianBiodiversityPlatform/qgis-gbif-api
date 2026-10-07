@@ -59,3 +59,4 @@ max_total_records=200000
 warning_threshold=5000
 timeout_ms=60000
 list_minimal_mode_fields=key, datasetKey, occurrenceStatus, taxonRank, acceptedTaxonKey, acceptedScientificName, eventDate, recordedBy, identifiedBy, institutionCode, collectionCode
+crs=4326

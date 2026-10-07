@@ -57,6 +57,7 @@ from qgisgbifapi.tool import (
 )
 
 from qgisgbifapi.__about__ import (
+    __api_crs__,
     __api_endpoint__,
     __api_occurrences_search__,
     __api_max_total_records__,
@@ -426,7 +427,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         """
         Here is where the processing itself takes place.
         """
-        output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
+        output_crs = QgsCoordinateReferenceSystem("EPSG:" + str(__api_crs__))
 
         if parameters["START_DATE"] is not None and parameters["END_DATE"] is not None:  # noqa: E501
             if parameters["END_DATE"] >= parameters["START_DATE"]:

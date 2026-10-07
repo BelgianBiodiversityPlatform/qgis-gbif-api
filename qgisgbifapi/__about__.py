@@ -58,3 +58,4 @@ __api_timeout__: str = __plugin_md__.get("api").get("timeout_ms")  # noqa: E501
 __field_list__: list = [
     t.strip() for t in __plugin_md__.get("api").get("list_minimal_mode_fields").split(',')  # noqa: E501
 ]
+__api_crs__: str = __plugin_md__.get("api").get("crs")

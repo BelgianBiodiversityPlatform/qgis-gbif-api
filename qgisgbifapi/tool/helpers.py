@@ -7,9 +7,12 @@ from qgis.core import (
     QgsGeometry,
     QgsPointXY,
     QgsField,
+    QgsCoordinateTransform,
+    QgsCoordinateReferenceSystem,
 )
 from qgis.PyQt.QtCore import QMetaType, QVariant
 from qgisgbifapi.tool import GBIFApiError
+from qgisgbifapi.__about__ import __field_list__, __api_crs__
 
 
 def _get_val_or_range(min_field, max_field, error_message):
@@ -22,10 +25,8 @@ def _get_val_or_range(min_field, max_field, error_message):
     except GBIFApiError as e:
         error_message("GBIF Error: " + str(e))
 
-from qgisgbifapi.__about__ import __field_list__
 
-
-def create_and_add_layer(project, name, epsg_id=4326):
+def create_and_add_layer(project, name, epsg_id):
     """Create a new memory layer, add it to the map and return it."""
     mem_layer = QgsVectorLayer(
         "Point?crs=epsg:{id}&index=true".format(id=epsg_id), name, "memory"
@@ -68,7 +69,7 @@ def _get_field_value(o, field_name):
         return ""
 
 
-def add_gbif_occ_to_layer(occurrences, layer, minimal_mode):
+def add_gbif_occ_to_layer(project, occurrences, layer, minimal_mode, export_crs):
     features = []
     dp = layer.dataProvider()
 
@@ -107,12 +108,18 @@ def add_gbif_occ_to_layer(occurrences, layer, minimal_mode):
             except AttributeError:
                 feat.setAttribute(d["attr"], d["val"])
 
-        feat.setAttribute("gbif_url", "https://www.gbif.org/fr/occurrence/" + str(feat["key"]))
-        feat.setGeometry(
-            QgsGeometry.fromPointXY(
-                QgsPointXY(o["decimalLongitude"], o["decimalLatitude"])
+        feat.setAttribute("gbif_url", "https://www.gbif.org/fr/occurrence/" + str(feat["key"]))  # noqa: E501
+        geom = QgsGeometry.fromPointXY(
+            QgsPointXY(o["decimalLongitude"], o["decimalLatitude"])
+        )
+        geom.transform(
+            QgsCoordinateTransform(
+                QgsCoordinateReferenceSystem("EPSG:" + str(__api_crs__)),
+                export_crs,
+                project,
             )
         )
+        feat.setGeometry(geom)
 
         features.append(feat)
     add_features_to_layer(layer, features)

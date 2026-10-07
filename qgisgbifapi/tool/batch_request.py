@@ -5,7 +5,7 @@ import json
 from qgis.PyQt.QtCore import QObject, QUrl, pyqtSignal
 from qgis.PyQt.QtNetwork import QNetworkReply, QNetworkRequest
 from qgis.PyQt.QtWidgets import QDialog
-from qgis.core import QgsNetworkAccessManager
+from qgis.core import QgsNetworkAccessManager, QgsProject
 
 from qgisgbifapi.tool import add_gbif_occ_to_layer
 from qgisgbifapi.__about__ import (
@@ -27,8 +27,10 @@ class BatchRequest(QObject):
         self,
         manager: QgsNetworkAccessManager = None,
         dlg: QDialog = None,
+        project: QgsProject = None,
     ):
         super().__init__()
+        self.project = project
         self.network_manager = manager
         self.dlg = dlg
 
@@ -111,9 +113,11 @@ class BatchRequest(QObject):
                     self._pending_obs += int(__api_per_page_records__)
                 self.dlg.show_progress(self._pending_obs, total_obs)
                 add_gbif_occ_to_layer(
+                    self.project,
                     resp["results"],
                     layer,
-                    self.dlg.minimalCheckBox.isChecked()
+                    self.dlg.minimalCheckBox.isChecked(),
+                    self.dlg.crs_selection.crs(),
                 )
                 if self.dlg.stop:
                     self.dlg.stop = False

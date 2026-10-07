@@ -31,7 +31,7 @@
      <x>9</x>
      <y>20</y>
      <width>402</width>
-     <height>691</height>
+     <height>692</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -91,6 +91,22 @@
         </item>
        </layout>
       </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="scientificNameLabel">
+        <property name="minimumSize">
+         <size>
+          <width>130</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Scientific name:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLineEdit" name="scientificNameField"/>
+      </item>
       <item row="2" column="1">
        <widget class="QLabel" name="yearLabel">
         <property name="minimumSize">
@@ -104,18 +120,18 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="scientificNameLabel">
-        <property name="minimumSize">
+      <item row="2" column="3">
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
          <size>
-          <width>130</width>
-          <height>0</height>
+          <width>40</width>
+          <height>20</height>
          </size>
         </property>
-        <property name="text">
-         <string>Scientific name:</string>
-        </property>
-       </widget>
+       </spacer>
       </item>
       <item row="0" column="2">
        <widget class="QPushButton" name="bboxButton">
@@ -133,9 +149,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
-       <widget class="QLineEdit" name="scientificNameField"/>
-      </item>
       <item row="0" column="1">
        <widget class="QLabel" name="bboxLabel">
         <property name="minimumSize">
@@ -149,19 +162,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="3">
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
       <item row="2" column="0">
        <spacer name="horizontalSpacer_3">
         <property name="orientation">
@@ -174,6 +174,13 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QCheckBox" name="minimalCheckBox">
+        <property name="text">
+         <string>Export minimal attribute table</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

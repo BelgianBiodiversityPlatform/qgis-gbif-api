@@ -22,6 +22,8 @@ def _get_val_or_range(min_field, max_field, error_message):
     except GBIFApiError as e:
         error_message("GBIF Error: " + str(e))
 
+from qgisgbifapi.__about__ import __field_list__
+
 
 def create_and_add_layer(project, name, epsg_id=4326):
     """Create a new memory layer, add it to the map and return it."""
@@ -66,23 +68,31 @@ def _get_field_value(o, field_name):
         return ""
 
 
-def add_gbif_occ_to_layer(occurrences, layer):
+def add_gbif_occ_to_layer(occurrences, layer, minimal_mode):
     features = []
     dp = layer.dataProvider()
 
     for o in occurrences:
         attrs = []
+        if dp.fieldNameIndex("gbif_url") == -1:
+            if Qgis.QGIS_VERSION_INT >= 33800:
+                dp.addAttributes([QgsField("gbif_url", QMetaType.Type(10))])
+            else:
+                dp.addAttributes([QgsField("gbif_url", QVariant.String)])
         for k in list(o.keys()):
-            field_index = dp.fieldNameIndex(k)
-            # Add a layer attribute for each JSON fields
-            # (if not already encountered)
-            if field_index == -1:
-                if Qgis.QGIS_VERSION_INT >= 33800:
-                    dp.addAttributes([QgsField(k, QMetaType.Type(10))])
-                else:
-                    dp.addAttributes([QgsField(k, QVariant.String)])
+            if (minimal_mode is True and k in __field_list__) or not minimal_mode:  # noqa: E501
+                field_index = dp.fieldNameIndex(k)
+                # Add a layer attribute for each JSON fields
+                # (if not already encountered)
+                if field_index == -1:
+                    if Qgis.QGIS_VERSION_INT >= 33800:
+                        dp.addAttributes([QgsField(k, QMetaType.Type(10))])
+                    else:
+                        dp.addAttributes([QgsField(k, QVariant.String)])
 
-            attrs.append({"attr": k, "val": _get_field_value(o, k)})
+                attrs.append({"attr": k, "val": _get_field_value(o, k)})
+            else:
+                continue
 
         feat = QgsFeature()
 
@@ -97,6 +107,7 @@ def add_gbif_occ_to_layer(occurrences, layer):
             except AttributeError:
                 feat.setAttribute(d["attr"], d["val"])
 
+        feat.setAttribute("gbif_url", "https://www.gbif.org/fr/occurrence/" + str(feat["key"]))
         feat.setGeometry(
             QgsGeometry.fromPointXY(
                 QgsPointXY(o["decimalLongitude"], o["decimalLatitude"])

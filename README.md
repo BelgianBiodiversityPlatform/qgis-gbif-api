@@ -31,12 +31,19 @@ Use
 ![Occurrences in QGIS](./screenshot2.png)
 ![Attributes table](./screenshot3.png)
 
+Processing
+-----------
+Installing this plugin also add 2 processings algorithms to the processing toolbox.
+They both allow to import GBIF data to your QGIS project.
+
+- the quick filters version, only needs a limited number of informations to download the data (extent, species name and date range)
+- the complete filters version, is similar as the plugin.
+
+![Processing toolbox](./screenshot4.png)
+
 Limitations
 -----------
 
-- More filters should be implemented.
-- The plugin is not yet compliant with GBIF and QGIS recommendation (data citation, limit usage of external libs like requests)
-- No translation
 - Documentation limited
 - Due to limitations of the GBIF API, searches are limited to 200,000 records.
 

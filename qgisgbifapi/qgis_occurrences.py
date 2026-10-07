@@ -16,7 +16,7 @@
 import os.path
 from builtins import object
 # Import qgis class
-from qgis.core import QgsProject, QgsNetworkAccessManager
+from qgis.core import QgsProject, QgsNetworkAccessManager, QgsApplication
 from qgis.PyQt.QtCore import (
     QSettings,
     QTranslator,
@@ -25,9 +25,10 @@ from qgis.PyQt.QtCore import (
 )
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
+from .processing_provider.provider import Provider
 # Import plugin class and vars
 from qgisgbifapi.gui import GBIFOccurrencesDialog
-from qgisgbifapi.__about__ import __api_timeout__
+from qgisgbifapi.__about__ import __api_timeout__, __icon_path__
 
 
 class GBIFOccurrences(object):
@@ -49,12 +50,7 @@ class GBIFOccurrences(object):
         self.manager.setTimeout(int(__api_timeout__))
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
-        ressource_path = "resources"
-        self.img_path = os.path.join(
-            self.plugin_dir,
-            ressource_path,
-            'img',
-        )
+
         # initialize locale
         locale = QSettings().value('locale/userLocale')[0:2]
         locale_path = os.path.join(
@@ -79,6 +75,7 @@ class GBIFOccurrences(object):
 
         # Declare instance attributes
         self.actions = []
+        self.provider = None
         self.menu = self.tr(u'&GBIF Occurrences')
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'GBIFOccurrences')
@@ -101,7 +98,6 @@ class GBIFOccurrences(object):
 
     def add_action(
         self,
-        icon_path,
         text,
         callback,
         enabled_flag=True,
@@ -112,10 +108,6 @@ class GBIFOccurrences(object):
         parent=None,
     ):
         """Add a toolbar icon to the InaSAFE toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
 
         :param text: Text that should be shown in menu items for this action.
         :type text: str
@@ -150,7 +142,7 @@ class GBIFOccurrences(object):
         :rtype: QAction
         """
 
-        icon = QIcon(icon_path)
+        icon = QIcon(str(__icon_path__))
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
         action.setEnabled(enabled_flag)
@@ -173,18 +165,19 @@ class GBIFOccurrences(object):
 
         return action
 
+    def initProcessing(self):
+        self.provider = Provider()
+        QgsApplication.processingRegistry().addProvider(self.provider)
+
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = os.path.join(
-            self.img_path,
-            'icon.png',
-        )
         self.add_action(
-            icon_path,
             text=self.tr(u'Load GBIF occurrences'),
             callback=self.run,
             parent=self.iface.mainWindow())
+
+        self.initProcessing()
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -193,6 +186,8 @@ class GBIFOccurrences(object):
                 self.tr(u'&GBIF Occurrences'),
                 action)
             self.iface.removeToolBarIcon(action)
+
+        QgsApplication.processingRegistry().removeProvider(self.provider)
 
     def run(self):
         """Run method that performs all the real work"""

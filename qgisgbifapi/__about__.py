@@ -47,6 +47,7 @@ def plugin_metadata_as_dict() -> dict:
 
 # store full metadata.txt as dict into a var
 __plugin_md__: dict = plugin_metadata_as_dict()
+__icon_path__: Path = DIR_PLUGIN_ROOT.resolve() / __plugin_md__.get("general").get("icon")  # noqa: E501
 
 __api_endpoint__: str = __plugin_md__.get("api").get("endpoint")
 __api_occurrences_search__: str = __plugin_md__.get("api").get("occurrences_search")  # noqa: E501

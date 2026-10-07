@@ -35,6 +35,7 @@ from qgisgbifapi.tool import (
     CountRequest,
     BatchRequest,
     _finalize_filters,
+    _get_val_or_range,
     show_warning,
 )
 
@@ -112,17 +113,6 @@ def _get_selected_country_code(combobox):
             return c["alpha2"]
     # Not found
     return None
-
-
-def _get_val_or_range(min_field, max_field, error_message):
-    try:
-        max_field.date() >= min_field.date()
-        return "{min},{max}".format(
-            min=str(min_field.date().toString("yyyy-MM-dd")),
-            max=str(max_field.date().toString("yyyy-MM-dd")),
-        )
-    except GBIFApiError as e:
-        error_message("GBIF Error: " + str(e))
 
 
 class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
@@ -297,7 +287,9 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
     def _ui_to_filters(self):
         if self.dateCheckBox.isChecked():
             event_date = _get_val_or_range(
-                self.minDateEdit, self.maxDateEdit, self.error_message
+                self.minDateEdit.date(),
+                self.maxDateEdit.date(),
+                self.error_message,
             )
         else:
             event_date = ""
@@ -345,11 +337,24 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                     "geometry": self.rectangle_tool.new_extent.asWktPolygon(),
                 }
             except AttributeError:
-                self.error_message(
-                    self.tr(
-                        "GBIF Error: No bounding box drawned on map canvas, press the dedicated button."  # noqa: E501
-                    )
-                )
+                return {
+                    "scientificName": self.scientificNameField.text(),
+                    "basisOfRecord": self.basisComboBox.checkedItemsData(),
+                    "catalogNumber": self.catalogNumberField.text(),
+                    "publishingCountry": _get_selected_country_code(
+                        self.publishingCountryComboBox
+                    ),
+                    "institutionCode": self.institutionCodeField.text(),
+                    "collectionCode": self.collectionCodeField.text(),
+                    "eventDate": event_date,
+                    "taxonKey": (
+                        str(self.taxonKeyField.value())
+                        if self.taxonKeyField.value() != 0
+                        else ""
+                    ),
+                    "datasetKey": self.datasetKeyField.text(),
+                    "recordedBy": self.recordedByField.text(),
+                }
 
     def localisation_selection_ui(self):
         if self.boundariesCheckBox.isChecked():
@@ -427,6 +432,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.canvas.unsetMapTool(self.rectangle_tool)
         filters = self._ui_to_filters()
         try:
+            print(filters)
             self.count_request.download(
                 _finalize_filters(filters),
             )

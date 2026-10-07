@@ -48,6 +48,9 @@ experimental=False
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 
+# processing algorithm
+hasProcessingProvider=yes
+
 [api]
 endpoint=https://api.gbif.org/v1/
 occurrences_search=occurrence/search

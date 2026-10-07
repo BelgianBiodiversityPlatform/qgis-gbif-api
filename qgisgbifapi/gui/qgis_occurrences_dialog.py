@@ -12,8 +12,9 @@
  ***************************************************************************/
 
 """
-import os
 from builtins import str
+import datetime
+import os
 
 from qgis.core import (
     Qgis,
@@ -169,7 +170,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
 
         self.taxonKeyField.setToolTip(
             self.tr(
-                'This is the primary id used to identify a taxon, "0" means this filter is not used.<br><b>Must be an integer</b>'  # noqa: E501
+                'This is the primary id used to identify a taxon, "0" means this filter is not used.<br><b>Must be an integer</b>. If both a species name and a taxon key are specified, taxon key will be prioritized.'  # noqa: E501
             )
         )
         self.basisComboBox.setToolTip(
@@ -295,7 +296,11 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             event_date = ""
         if not self.bboxCheckBox.isChecked():
             return {
-                "scientificName": self.scientificNameField.text(),
+                "scientificName": (
+                    self.scientificNameField.text()
+                    if self.taxonKeyField.value() == 0
+                    else ""
+                ),
                 "basisOfRecord": self.basisComboBox.checkedItemsData(),
                 "country": _get_selected_country_code(self.countryComboBox),
                 "catalogNumber": self.catalogNumberField.text(),
@@ -318,7 +323,11 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             try:
                 self.rectangle_tool.new_extent.asWktPolygon()
                 return {
-                    "scientificName": self.scientificNameField.text(),
+                    "scientificName": (
+                        self.scientificNameField.text()
+                        if self.taxonKeyField.value() == 0
+                        else ""
+                    ),
                     "basisOfRecord": self.basisComboBox.checkedItemsData(),
                     "catalogNumber": self.catalogNumberField.text(),
                     "publishingCountry": _get_selected_country_code(
@@ -451,14 +460,38 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                 if not show_warning():
                     return  # User chose not to continue
             self.show_progress(0, total_count)
-            scientific_name = self.count_request.params["scientificName"]
-            if not scientific_name:
-                scientific_name = "GBIF_O Taxon {}".format(
-                    self.count_request.params["taxonKey"]
+            today = datetime.datetime.now()
+            year = today.year
+            month = today.strftime("%m")
+            day = today.strftime("%d")
+
+            if not self.count_request.params["taxonKey"]:
+                if not self.count_request.params["scientificName"]:
+                    lyr_name = (
+                        str(year)
+                        + str(month)
+                        + str(day)
+                        + "_GBIF_Occurences"
+                    )
+                else:
+                    lyr_name = (
+                        str(year)
+                        + str(month)
+                        + str(day)
+                        + "_GBIF_Occurences_"
+                        + str(self.count_request.params["scientificName"])
+                    )
+            else:
+                lyr_name = (
+                    str(year)
+                    + str(month)
+                    + str(day)
+                    + "_GBIF_Occurences_"
+                    + str(self.count_request.params["taxonKey"])
                 )
             layer = create_and_add_layer(
                 project=self.project,
-                name=scientific_name
+                name=lyr_name
             )
 
             if int(total_count / int(__api_per_page_records__)) == 1:

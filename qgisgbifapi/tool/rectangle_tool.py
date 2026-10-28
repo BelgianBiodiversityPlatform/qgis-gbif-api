@@ -11,6 +11,8 @@ from qgis.gui import QgsMapMouseEvent, QgsMapTool, QgsRubberBand
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 
+from qgisgbifapi.__about__ import __api_crs__
+
 
 class RectangleDrawTool(QgsMapTool):
     """Tool used to draw a rectangle on the canvas.
@@ -100,11 +102,11 @@ class RectangleDrawTool(QgsMapTool):
             return None
         else:
             # Rectangle reprojection
-            if str(self.project.instance().crs().postgisSrid()) != str(4326):
+            if str(self.project.instance().crs().postgisSrid()) != str(__api_crs__):  # noqa: E501
                 start_point = self.transform_geom(
                     QgsGeometry().fromPointXY(self.start_point),
                     self.project.instance().crs(),
-                    QgsCoordinateReferenceSystem("EPSG:" + str(4326)),
+                    QgsCoordinateReferenceSystem("EPSG:" + str(__api_crs__)),
                 )
                 self.start_point = QgsPointXY(
                     start_point.asPoint().x(), start_point.asPoint().y()
@@ -112,7 +114,7 @@ class RectangleDrawTool(QgsMapTool):
                 end_point = self.transform_geom(
                     QgsGeometry().fromPointXY(self.end_point),
                     self.project.instance().crs(),
-                    QgsCoordinateReferenceSystem("EPSG:" + str(4326)),
+                    QgsCoordinateReferenceSystem("EPSG:" + str(__api_crs__)),
                 )
                 self.end_point = QgsPointXY(
                     end_point.asPoint().x(), end_point.asPoint().y()

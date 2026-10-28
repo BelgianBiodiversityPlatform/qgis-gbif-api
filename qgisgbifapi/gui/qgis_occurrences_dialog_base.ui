@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>418</width>
-    <height>726</height>
+    <height>759</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -31,7 +31,7 @@
      <x>9</x>
      <y>20</y>
      <width>402</width>
-     <height>692</height>
+     <height>723</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -667,6 +667,9 @@
      </spacer>
     </item>
     <item>
+     <widget class="QgsProjectionSelectionWidget" name="crs_selection"/>
+    </item>
+    <item>
      <widget class="Line" name="line">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -765,6 +768,11 @@
    <class>QgsCheckableComboBox</class>
    <extends>QComboBox</extends>
    <header>qgscheckablecombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsProjectionSelectionWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsprojectionselectionwidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

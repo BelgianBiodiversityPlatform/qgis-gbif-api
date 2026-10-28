@@ -21,6 +21,7 @@ from qgis.core import (
     QgsRasterLayer)
 
 from .utilities import get_qgis_app
+from qgisgbifapi.__about__ import __api_crs__
 QGIS_APP = get_qgis_app()
 
 
@@ -46,7 +47,7 @@ class QGISTest(unittest.TestCase):
             '0.0174532925199433]]')
         crs.createFromWkt(wkt)
         auth_id = crs.authid()
-        expected_auth_id = 'EPSG:4326'
+        expected_auth_id = 'EPSG:' + str(__api_crs__)
         self.assertEqual(auth_id, expected_auth_id)
 
         # now test for a loaded layer
@@ -55,6 +56,7 @@ class QGISTest(unittest.TestCase):
         layer = QgsRasterLayer(path, title)
         auth_id = layer.crs().authid()
         self.assertEqual(auth_id, expected_auth_id)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -21,6 +21,7 @@ from .utilities import get_qgis_app
 
 from httmock import HTTMock
 from .gbif_mock import gbif_v1_response
+from qgisgbifapi.__about__ import __api_crs__
 
 QGIS_APP = get_qgis_app()
 
@@ -190,8 +191,8 @@ class GBIFOccurrencesDialogTest(unittest.TestCase):
             current_layers = list(QgsMapLayerRegistry().instance().mapLayers().values())
             new_layer = list(set(current_layers).difference(set(existing_layers)))[0]
 
-            # Ensure the created layer use EPSG:4326.
-            self.assertEqual(new_layer.crs().authid(), 'EPSG:4326')
+            # Ensure the created layer use API CRS.
+            self.assertEqual(new_layer.crs().authid(), 'EPSG:' + str(__api_crs__))
             self.assertTrue(new_layer.hasGeometryType())
 
             # Strangely, this doesn't work because it is QGis.WKBUnknown... strange.

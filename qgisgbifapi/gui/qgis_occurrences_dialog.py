@@ -41,6 +41,7 @@ from qgisgbifapi.tool import (
 )
 
 from qgisgbifapi.__about__ import (
+    __api_crs__,
     __api_max_total_records__,
     __api_warning_threshold__,
     __api_per_page_records__,
@@ -152,6 +153,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.batch_request = BatchRequest(
             manager=self.manager,
             dlg=self,
+            project=self.project,
         )
         self.count_request.finished_dl.connect(self.count_results)
         self.batch_request.finished_dl.connect(self.occurrences_results)
@@ -205,6 +207,10 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         )
         self.datasetKeyField.setToolTip(
             self.tr("The occurrence dataset key (a UUID).")
+        )
+
+        self.crs_selection.setCrs(
+            QgsCoordinateReferenceSystem("EPSG:" + str(__api_crs__))
         )
 
         self.loadButton.clicked.connect(self.load_occurrences)
@@ -402,15 +408,15 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             self.rectangle_tool.new_extent
             and self.rectangle_tool.rubber_band.numberOfVertices() == 0
         ):
-            extent4326 = self.rectangle_tool.new_extent
-            if str(self.project.instance().crs().postgisSrid()) != str(4326):
+            extent_api_crs = self.rectangle_tool.new_extent
+            if str(self.project.instance().crs().postgisSrid()) != str(__api_crs__):  # noqa: E501
                 geom = self.rectangle_tool.transform_geom(
-                    QgsGeometry().fromRect(extent4326),
-                    QgsCoordinateReferenceSystem("EPSG:" + str(4326)),
+                    QgsGeometry().fromRect(extent_api_crs),
+                    QgsCoordinateReferenceSystem("EPSG:" + str(__api_crs__)),
                     self.project.instance().crs(),
                 )
             else:
-                geom = QgsGeometry().fromRect(extent4326)
+                geom = QgsGeometry().fromRect(extent_api_crs)
             self.rectangle_tool.rubber_band.setToGeometry(geom)
             self.rectangle_tool.rubber_band.show()
         else:
@@ -491,7 +497,8 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                 )
             layer = create_and_add_layer(
                 project=self.project,
-                name=lyr_name
+                name=lyr_name,
+                epsg_id=self.crs_selection.crs().postgisSrid()
             )
 
             if int(total_count / int(__api_per_page_records__)) == 1:

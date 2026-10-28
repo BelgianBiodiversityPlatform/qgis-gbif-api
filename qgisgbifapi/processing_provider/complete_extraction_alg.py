@@ -32,6 +32,7 @@ from qgis.core import (
     QgsProcessingParameterDateTime,
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterNumber,
+    QgsProcessingParameterCrs,
     QgsProcessingParameterString,
     QgsProcessingParameterExtent,
     QgsProcessingParameterEnum,
@@ -164,6 +165,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
     DATASET_KEY = "DATASET_KEY"
     START_DATE = "START_DATE"
     END_DATE = "END_DATE"
+    CRS = "CRS"
 
     def tr(self, message: str) -> str:
         """Get the translation for a string using Qt translation API.
@@ -401,6 +403,16 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         ))
         self.addParameter(dataset)
 
+        crs = QgsProcessingParameterCrs(
+            self.CRS,
+            self.tr("Coordinate Reference System"),
+            defaultValue=QgsCoordinateReferenceSystem(
+                "EPSG:" + str(__api_crs__)
+            ),
+            optional=False
+        )
+        self.addParameter(crs)
+
         # We add a feature sink in which to store our processed features (this
         # usually takes the form of a newly created vector layer when the
         # algorithm is run in QGIS).
@@ -529,7 +541,11 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                     + self.tr("). It may takes some times")
                 )
             scientific_name = parameters["SCIENTIFIC_NAME"]
-            layer = create_and_add_layer(project=None, name=scientific_name)
+            layer = create_and_add_layer(
+                project=None,
+                name=scientific_name,
+                epsg_id=parameters["CRS"].postgisSrid()
+            )
 
             if int(occ_count / int(__api_per_page_records__)) == 1:
                 total_pages = int(occ_count / int(__api_per_page_records__))
@@ -540,7 +556,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
             for page in range(total_pages):
                 filters["offset"] = int(page) * int(__api_per_page_records__)
-                self.batch_request(layer, filters)
+                self.batch_request(layer, filters, parameters)
                 # Update the progress bar
                 feedback.setProgress(int(int(page) / total_pages))
                 # Stop the algorithm if cancel button has been clicked
@@ -559,7 +575,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
             context,
             layer.fields(),
             Qgis.WkbType.Point,
-            output_crs,
+            parameters["CRS"],
         )
 
         # If sink was not created, throw an exception to indicate that
@@ -649,7 +665,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         nb_obs = res["count"]
         return nb_obs
 
-    def batch_request(self, layer, params):
+    def batch_request(self, layer, params, parameters):
         request_url = self.create_url(params)
         request = QNetworkRequest(QUrl(request_url))
         request.setRawHeader(
@@ -668,6 +684,12 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         data_request = req_reply.content().data().decode()
         res = json.loads(data_request)
         try:
-            add_gbif_occ_to_layer(res["results"], layer)
+            add_gbif_occ_to_layer(
+                QgsProject.instance(),
+                res["results"],
+                layer,
+                False,
+                parameters["CRS"]
+            )
         except TypeError:
             print(res["results"])

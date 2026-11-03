@@ -7,6 +7,7 @@ from .gbif_webservices import (  # noqa: F401
 )
 from .helpers import (  # noqa: F401
     create_and_add_layer,
+    create_url,
     add_features_to_layer,
     add_gbif_occ_to_layer,
     is_sequence,

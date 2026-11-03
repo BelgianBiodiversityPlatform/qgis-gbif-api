@@ -447,7 +447,6 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self.canvas.unsetMapTool(self.rectangle_tool)
         filters = self._ui_to_filters()
         try:
-            print(filters)
             self.count_request.download(
                 _finalize_filters(filters),
             )
@@ -471,8 +470,8 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             month = today.strftime("%m")
             day = today.strftime("%d")
 
-            if not self.count_request.params["taxonKey"]:
-                if not self.count_request.params["scientificName"]:
+            if not self.count_request.taxon_key:
+                if not self.count_request.scientific_name:
                     lyr_name = (
                         str(year)
                         + str(month)
@@ -485,7 +484,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                         + str(month)
                         + str(day)
                         + "_GBIF_Occurences_"
-                        + str(self.count_request.params["scientificName"])
+                        + str(self.count_request.scientific_name)
                     )
             else:
                 lyr_name = (
@@ -493,7 +492,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                     + str(month)
                     + str(day)
                     + "_GBIF_Occurences_"
-                    + str(self.count_request.params["taxonKey"])
+                    + str(self.count_request.taxon_key)
                 )
             layer = create_and_add_layer(
                 project=self.project,

@@ -12,10 +12,16 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import QMetaType, QVariant
 from qgisgbifapi.tool import GBIFApiError
-from qgisgbifapi.__about__ import __field_list__, __api_crs__
+from qgisgbifapi.__about__ import (
+    __field_list__,
+    __api_crs__,
+    __api_endpoint__,
+    __api_occurrences_search__,
+)
 
 
 def _get_val_or_range(min_field, max_field, error_message):
+    # check if max value is bigger than min value
     try:
         max_field >= min_field
         return "{min},{max}".format(
@@ -69,10 +75,11 @@ def _get_field_value(o, field_name):
         return ""
 
 
-def add_gbif_occ_to_layer(project, occurrences, layer, minimal_mode, export_crs):
+def add_gbif_occ_to_layer(project, occurrences, layer, minimal_mode, export_crs):  # noqa: E501
+    # create empty list of feature
     features = []
     dp = layer.dataProvider()
-
+    # create attribute based on fetched data
     for o in occurrences:
         attrs = []
         if dp.fieldNameIndex("gbif_url") == -1:
@@ -123,3 +130,21 @@ def add_gbif_occ_to_layer(project, occurrences, layer, minimal_mode, export_crs)
 
         features.append(feat)
     add_features_to_layer(layer, features)
+
+
+def create_url(params):
+    # create base url for request
+    request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
+    # add every parameters to base url
+    for param in params:
+        if isinstance(params[param], list):
+            for elem in params[param]:
+                request_url = request_url + str(param) + "=" + str(elem) + "&"  # noqa: E501
+        elif params[param] == "":
+            pass
+        elif params[param] is None:
+            pass
+        else:
+            request_url = request_url + str(param) + "=" + str(params[param]) + "&"  # noqa: E501
+    # remove last character of url, either ? or &
+    return request_url[:-1]

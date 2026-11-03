@@ -77,7 +77,6 @@ class GBIFOccurrences(object):
         self.actions = []
         self.provider = None
         self.menu = self.tr(u'&GBIF Occurrences')
-        # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'GBIFOccurrences')
         self.toolbar.setObjectName(u'GBIFOccurrences')
 
@@ -193,16 +192,16 @@ class GBIFOccurrences(object):
         """Run method that performs all the real work"""
         # show the dialog
         self.dlg.show()
-        # If there is no layers, an OSM layer is added
+        # If there is no layers, an basemap layer is added
         # to simplify the rectangle drawing
         if len(self.project.mapLayers()) == 0:
 
-            # Type of WMTS, osm use specs, url and name
-            osm_spec = "tilePixelRatio=1&zmax=19&zmin=0&"
+            # Type of WMTS, basemap specs, url and name
+            basemap_spec = "zmax=18&zmin=0&"
             wms_type = "xyz"
-            url = "http://tile.openstreetmap.org/{z}/{x}/{y}.png"
-            name = "OpenStreetMap"
-            uri = osm_spec + "type=" + wms_type + "&url=" + url
+            url = "https://tile.gbif.org/3857/omt/{z}/{x}/{y}@1x.png?style=gbif-natural"  # noqa: E501
+            name = "GBIF Natural"
+            uri = basemap_spec + "type=" + wms_type + "&url=" + url
 
             # Add WMTS to the QgsProject
             self.iface.addRasterLayer(uri, name, "wms")

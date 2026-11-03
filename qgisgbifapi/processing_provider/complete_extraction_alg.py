@@ -53,14 +53,13 @@ if Qgis.QGIS_VERSION_INT >= 40000:
 
 from qgisgbifapi.tool import (
     create_and_add_layer,
+    create_url,
     _finalize_filters,
     add_gbif_occ_to_layer,
 )
 
 from qgisgbifapi.__about__ import (
     __api_crs__,
-    __api_endpoint__,
-    __api_occurrences_search__,
     __api_max_total_records__,
     __api_warning_threshold__,
     __api_per_page_records__,
@@ -623,27 +622,9 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         else:
             return ""
 
-    def create_url(self, params):
-        request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
-        for param in params:
-            if isinstance(params[param], list):
-                for elem in params[param]:
-                    request_url = (
-                        request_url + str(param) + "=" + str(elem) + "&"
-                    )  # noqa: E501
-            elif params[param] == "":
-                pass
-            elif params[param] is None:
-                pass
-            else:
-                request_url = (
-                    request_url + str(param) + "=" + str(params[param]) + "&"
-                )  # noqa: E501
-        return request_url[:-1]
-
     def occurrence_counting(self, params):
         params["offset"] = 0
-        request_url = self.create_url(params)
+        request_url = create_url(params)
         request = QNetworkRequest(QUrl(request_url))
         request.setRawHeader(
             b"User-Agent",
@@ -666,7 +647,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         return nb_obs
 
     def batch_request(self, layer, params, parameters):
-        request_url = self.create_url(params)
+        request_url = create_url(params)
         request = QNetworkRequest(QUrl(request_url))
         request.setRawHeader(
             b"User-Agent",

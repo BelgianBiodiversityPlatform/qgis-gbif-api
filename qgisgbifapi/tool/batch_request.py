@@ -83,7 +83,7 @@ class BatchRequest(QObject):
             # Decode data fetch from the get request and create a dictionnary.
             data_request = reply.readAll().data().decode()
             resp = json.loads(data_request)
-        
+
         if self.pending_downloads == 0:
             # if no other downloads are needed, emit finished_dl signal
             if self.pending_pages > self.total_pages:

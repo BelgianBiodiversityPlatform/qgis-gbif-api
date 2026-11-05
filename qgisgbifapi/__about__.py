@@ -49,6 +49,7 @@ def plugin_metadata_as_dict() -> dict:
 __plugin_md__: dict = plugin_metadata_as_dict()
 __icon_path__: Path = DIR_PLUGIN_ROOT.resolve() / __plugin_md__.get("general").get("icon")  # noqa: E501
 
+# API var
 __api_endpoint__: str = __plugin_md__.get("api").get("endpoint")
 __api_occurrences_search__: str = __plugin_md__.get("api").get("occurrences_search")  # noqa: E501
 __api_per_page_records__: str = __plugin_md__.get("api").get("per_page_records")  # noqa: E501
@@ -59,3 +60,5 @@ __field_list__: list = [
     t.strip() for t in __plugin_md__.get("api").get("list_minimal_mode_fields").split(',')  # noqa: E501
 ]
 __api_crs__: str = __plugin_md__.get("api").get("crs")
+# UI var
+__combobox_all_label__: str = __plugin_md__.get("ui").get("combobox_all_label")

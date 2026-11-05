@@ -37,17 +37,21 @@ class CountRequest(QObject):
         return self._pending_downloads
 
     def download(self, params):
+        # set object property
         self.taxon_key = params["taxonKey"]
         self.scientific_name = params["scientificName"]
         self.params = params
         self.params['offset'] = 0
+        # use parameters selected by user to create download url
         request_url = create_url(self.params)
         request = QNetworkRequest(QUrl(request_url))
+        # add user-agent to identify the plugin
         request.setRawHeader(
             b"User-Agent",
             bytes('QGIS Plugin GBIF Occurrences', encoding="utf-8"),  # noqa: E501
         )
         request.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")  # noqa: E501
+        # launch download request
         reply = self.network_manager.get(request)
         reply.finished.connect(lambda: self.handle_finished(reply))
         self._pending_downloads += 1

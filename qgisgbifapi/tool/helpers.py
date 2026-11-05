@@ -2,6 +2,7 @@ import json
 
 from qgis.core import (
     Qgis,
+    QgsApplication,
     QgsVectorLayer,
     QgsFeature,
     QgsGeometry,
@@ -9,15 +10,34 @@ from qgis.core import (
     QgsField,
     QgsCoordinateTransform,
     QgsCoordinateReferenceSystem,
+    QgsReferencedGeometry,
+    QgsReferencedRectangle,
+    QgsRectangle,
+    QgsProject,
 )
-from qgis.PyQt.QtCore import QMetaType, QVariant
-from qgisgbifapi.tool import GBIFApiError
+
+from qgis.PyQt.QtCore import QMetaType, QVariant, QDir, QFile, QByteArray, QUrl
+if Qgis.QGIS_VERSION_INT >= 40000:
+    from qgis.PyQt.QtCore import QIODeviceBase
+else:
+    from qgis.PyQt.QtCore import QIODevice
+from qgis.PyQt.QtNetwork import QNetworkRequest
+from qgis.PyQt.QtWidgets import QMessageBox
+
 from qgisgbifapi.__about__ import (
     __field_list__,
     __api_crs__,
     __api_endpoint__,
+    __api_max_total_records__,
     __api_occurrences_search__,
+    __api_per_page_records__,
+    __api_warning_threshold__,
+    __combobox_all_label__,
 )
+
+
+class GBIFApiError(Exception):
+    pass
 
 
 def _get_val_or_range(min_field, max_field, error_message):
@@ -30,6 +50,30 @@ def _get_val_or_range(min_field, max_field, error_message):
         )
     except GBIFApiError as e:
         error_message("GBIF Error: " + str(e))
+
+
+def _finalize_filters(filters):
+    # add specific parameters to user's parameters
+    fixed_filters = {
+        "hasCoordinate": "true",
+        "limit": __api_per_page_records__
+    }
+    return dict(list(filters.items()) + list(fixed_filters.items()))
+
+
+def show_warning():
+    """Warning message if a request is very large,
+    user can choose to stop or proceed"""
+    msg_box = QMessageBox()
+    msg_box.setIcon(QMessageBox.Icon.Warning)
+    msg_box.setText(
+        f"The number of results is very large (> {__api_warning_threshold__}). Do you want to continue?"  # noqa: E501
+    )
+    msg_box.setWindowTitle("Warning")
+    msg_box.setStandardButtons(
+        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+    )
+    return msg_box.exec() == QMessageBox.StandardButton.Yes
 
 
 def create_and_add_layer(project, name, epsg_id):
@@ -148,3 +192,198 @@ def create_url(params):
             request_url = request_url + str(param) + "=" + str(params[param]) + "&"  # noqa: E501
     # remove last character of url, either ? or &
     return request_url[:-1]
+
+
+def calculate_pages(occ_count, record_per_page):
+    # calculate number of pages needed to download all records
+    if int(occ_count / int(record_per_page)) == 1:
+        total_pages = int(occ_count / int(record_per_page))
+    else:
+        total_pages = (
+            int(occ_count / int(record_per_page)) + 1
+        )
+    return total_pages
+
+
+def get_countries():
+    # find country list in QGIS metadata file to build a dictionnary
+    # country name as key and alpha code 2 as value, a list is also built
+    # with only the countries name
+    countries_dict = {}
+    countries_dict[__combobox_all_label__] = ""
+    path = QDir(QgsApplication.metadataPath()).absoluteFilePath(
+        "country_code_ISO_3166.csv"
+    )
+    file = QFile(path)
+    if Qgis.QGIS_VERSION_INT >= 40000:
+        open_mode = QIODeviceBase.OpenModeFlag.ReadOnly
+    else:
+        open_mode = open_mode = QIODevice.ReadOnly
+    if not file.open(open_mode):
+        print(
+            "Error while opening the CSV file: {}, {} ".format(
+                path,
+                file.errorString()
+            )
+        )
+        return countries_dict
+
+    file.readLine()
+    while not file.atEnd():
+        line = file.readLine()
+        items = line.split(QByteArray(",".encode()))
+        if len(items) > 9:
+            name = (
+                items[0].trimmed().data().decode()
+                + " "
+                + items[1].trimmed().data().decode()
+            )
+            alpha2 = items[2].trimmed().data().decode()
+        else:
+            name = items[0].trimmed().data().decode()
+            alpha2 = items[1].trimmed().data().decode()
+        countries_dict[name.strip('"')] = alpha2
+    file.close()
+    return countries_dict
+
+
+def get_geometry(extent, output_crs):
+    if extent is not None:
+        point_list = extent.split(" ")[0]
+        crs = extent.split(" ")[1][1:-1]
+        xmin = point_list.split(",")[0]
+        xmax = point_list.split(",")[1]
+        ymin = point_list.split(",")[2]
+        ymax = point_list.split(",")[3]
+        rect = QgsRectangle()
+        rect.setXMaximum(float(xmax))
+        rect.setXMinimum(float(xmin))
+        rect.setYMaximum(float(ymax))
+        rect.setYMinimum(float(ymin))
+        extent = QgsReferencedGeometry().fromReferencedRect(
+            QgsReferencedRectangle(rect, QgsCoordinateReferenceSystem(crs))
+        )
+        extent.transform(
+            QgsCoordinateTransform(
+                QgsCoordinateReferenceSystem(str(crs)),
+                output_crs,
+                QgsProject.instance(),
+            )
+        )
+        return extent.boundingBox().asWktPolygon()
+    else:
+        return ""
+
+
+def blocking_occurrence_counting(ntwk_requester, params):
+    params["offset"] = 0
+    request_url = create_url(params)
+    request = QNetworkRequest(QUrl(request_url))
+    request.setRawHeader(
+        b"User-Agent",
+        bytes("QGIS Plugin GBIF Occurrences", encoding="utf-8"),  # noqa: E501
+    )
+    request.setHeader(
+        QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json"
+    )  # noqa: E501
+    ntwk_requester.get(
+        request=request,
+        forceRefresh=False,
+    )
+    req_reply = ntwk_requester.reply()
+    # Decode data fetch from the get request and create a dictionnary.
+    data_request = req_reply.content().data().decode()
+    res = json.loads(data_request)
+    # Get the observation number in the extent based on filters.
+    nb_obs = res["count"]
+    return nb_obs
+
+
+def blocking_batch_request(ntwk_requester, layer, params, parameters):
+    request_url = create_url(params)
+    request = QNetworkRequest(QUrl(request_url))
+    request.setRawHeader(
+        b"User-Agent",
+        bytes("QGIS Plugin GBIF Occurrences", encoding="utf-8"),  # noqa: E501
+    )
+    request.setHeader(
+        QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json"
+    )  # noqa: E501
+    ntwk_requester.get(
+        request=request,
+        forceRefresh=False,
+    )
+    req_reply = ntwk_requester.reply()
+    # Decode data fetch from the get request and create a dictionnary.
+    data_request = req_reply.content().data().decode()
+    res = json.loads(data_request)
+    try:
+        add_gbif_occ_to_layer(
+            QgsProject.instance(),
+            res["results"],
+            layer,
+            False,
+            parameters["CRS"]
+        )
+    except TypeError:
+        print(res["results"])
+
+
+def manage_occurrences_counting(ntwk_requester, occ_count, parameters, filters, feedback, translation):  # noqa: E501
+    # depending on occurrence number, we continue the process or not
+    # Too much result
+    if occ_count > int(__api_max_total_records__):
+        feedback.reportError(
+            translation("The query returned more than ")
+            + str(__api_max_total_records__)
+            + translation(" records. Due to limitations in the GBIF infrastructure, very large queries are currently not supported."),  # noqa: E501
+            True,
+        )
+        return None
+    # Not too much but more than 0 result
+    elif occ_count > 0:
+        feedback.pushInfo(
+            translation("The query returned ")
+            + str(occ_count)
+            + translation(" records.")
+        )
+        # Warning if there is a lot of records
+        if occ_count > int(__api_warning_threshold__):
+            feedback.pushWarning(
+                translation("The number of records is very large (> ")
+                + str(__api_warning_threshold__)
+                + translation("). It may takes some times")
+            )
+        scientific_name = parameters["SCIENTIFIC_NAME"]
+        layer = create_and_add_layer(
+            project=None,
+            name=scientific_name,
+            epsg_id=parameters["CRS"].postgisSrid()
+        )
+
+        total_pages = calculate_pages(
+            int(occ_count),
+            int(__api_per_page_records__)
+        )
+
+        for page in range(total_pages):
+            filters["offset"] = int(page) * int(__api_per_page_records__)
+            blocking_batch_request(
+                ntwk_requester,
+                layer,
+                filters,
+                parameters
+            )
+            # Update the progress bar
+            feedback.setProgress(int(int(page) / total_pages))
+            # Stop the algorithm if cancel button has been clicked
+            if feedback.isCanceled():
+                break
+        return layer
+    # No result
+    else:
+        feedback.reportError(
+            translation("The query didn't returned record."),
+            True,
+        )
+        return None

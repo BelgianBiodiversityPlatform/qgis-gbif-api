@@ -17,19 +17,16 @@ import datetime
 import os
 
 from qgis.core import (
-    Qgis,
     QgsGeometry,
     QgsCoordinateReferenceSystem,
-    QgsApplication,
 )
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox, QDialog
-from qgis.PyQt.QtCore import QDate, Qt, QIODevice, QDir, QFile, QByteArray
-
-if Qgis.QGIS_VERSION_INT >= 40000:
-    from qgis.PyQt.QtCore import QIODeviceBase
+from qgis.PyQt.QtCore import QDate, Qt
 
 from qgisgbifapi.tool import (
+    calculate_pages,
+    get_countries,
     GBIFApiError,
     RectangleDrawTool,
     create_and_add_layer,
@@ -52,67 +49,18 @@ FORM_CLASS, _ = uic.loadUiType(
 )
 
 
-COMBOBOX_ALL_LABEL = "-- All --"
-
-
-def get_countries():
-    countries = []
-
-    path = QDir(QgsApplication.metadataPath()).absoluteFilePath(
-        "country_code_ISO_3166.csv"
-    )
-    file = QFile(path)
-    if Qgis.QGIS_VERSION_INT >= 40000:
-        open_mode = QIODeviceBase.OpenModeFlag.ReadOnly
-    else:
-        open_mode = open_mode = QIODevice.ReadOnly
-    if not file.open(open_mode):
-        print(
-            "Error while opening the CSV file: {}, {} ".format(
-                path,
-                file.errorString()
-            )
-        )
-        return countries
-
-    file.readLine()
-    while not file.atEnd():
-        country_attr = {}
-        line = file.readLine()
-        items = line.split(QByteArray(",".encode()))
-        if len(items) > 9:
-            name = (
-                items[0].trimmed().data().decode()
-                + " "
-                + items[1].trimmed().data().decode()
-            )
-            alpha2 = items[2].trimmed().data().decode()
-            alpha3 = items[3].trimmed().data().decode()
-        else:
-            name = items[0].trimmed().data().decode()
-            alpha2 = items[1].trimmed().data().decode()
-            alpha3 = items[2].trimmed().data().decode()
-        country_attr["name"] = name.strip('"')
-        country_attr["alpha2"] = alpha2
-        country_attr["alpha3"] = alpha3
-        countries.append(country_attr)
-    file.close()
-    return countries
-
-
-countries = get_countries()
+countries_dict = get_countries()
 
 
 def _populate_country_field(combobox):
-    combobox.addItem(COMBOBOX_ALL_LABEL)
-    for c in countries:
-        combobox.addItem(c["name"])
+    for country in countries_dict:
+        combobox.addItem(country)
 
 
 def _get_selected_country_code(combobox):
-    for c in countries:
-        if combobox.currentText() == c["name"]:
-            return c["alpha2"]
+    for country in countries_dict:
+        if combobox.currentText() == country:
+            return countries_dict[country]
     # Not found
     return None
 
@@ -165,11 +113,11 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         self._populate_countries()
         self._populate_publishing_countries()
         self.set_rectangle_tool()
-        # self.to_disable_during_load = ()  # Hinzugefügt
 
         self.minDateEdit.setDate(QDate.currentDate())
         self.maxDateEdit.setDate(QDate.currentDate())
 
+        # Widget tooltip
         self.taxonKeyField.setToolTip(
             self.tr(
                 'This is the primary id used to identify a taxon, "0" means this filter is not used.<br><b>Must be an integer</b>. If both a species name and a taxon key are specified, taxon key will be prioritized.'  # noqa: E501
@@ -209,25 +157,30 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             self.tr("The occurrence dataset key (a UUID).")
         )
 
+        # Crs selection widget
         self.crs_selection.setCrs(
             QgsCoordinateReferenceSystem("EPSG:" + str(__api_crs__))
         )
 
-        self.loadButton.clicked.connect(self.load_occurrences)
+        # signal to adapt ui based on user selection
         self.bboxCheckBox.clicked.connect(self.localisation_selection_ui)
         self.boundariesCheckBox.clicked.connect(self.localisation_selection_ui)
-        self.bboxButton.clicked.connect(self.pointer)
-
         self.dateCheckBox.clicked.connect(self.date_selection_ui)
 
+        # signal to use specific tool, extent pointer
+        self.bboxButton.clicked.connect(self.pointer)
+
+        # signal to launch and stop algorithm
+        self.loadButton.clicked.connect(self.load_occurrences)
         self.stop = False
         self.stopButton.clicked.connect(self.clicked_stop_button)
 
     def showEvent(self, event):
+        # recreate the previous extent rubber band when the dialog is re-open
         self.recreate_rubber_band()
 
     def closeEvent(self, event):
-        # Remove rectangle from map
+        # remove extent rubber band when the dialog is closed
         self.erase_rubber_band()
         self.canvas.unsetMapTool(self.rectangle_tool)
 
@@ -292,6 +245,8 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
         QMessageBox.critical(self, self.tr("Error"), msg)
 
     def _ui_to_filters(self):
+        # switch ui widget selection to filter value to make the request
+        # date calculation
         if self.dateCheckBox.isChecked():
             event_date = _get_val_or_range(
                 self.minDateEdit.date(),
@@ -300,6 +255,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             )
         else:
             event_date = ""
+        # create dictionnary filters based on geometry or admin boundaries
         if not self.bboxCheckBox.isChecked():
             return {
                 "scientificName": (
@@ -404,10 +360,12 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             pass
 
     def recreate_rubber_band(self):
+        # check if a rubber band already exists
         if (
             self.rectangle_tool.new_extent
             and self.rectangle_tool.rubber_band.numberOfVertices() == 0
         ):
+            # we need to recreate it on the map in the right crs
             extent_api_crs = self.rectangle_tool.new_extent
             if str(self.project.instance().crs().postgisSrid()) != str(__api_crs__):  # noqa: E501
                 geom = self.rectangle_tool.transform_geom(
@@ -456,6 +414,9 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             pass
 
     def count_results(self):
+        # check count of occurrence, stop algorithm if the number is to high
+        # show a warning message if the number of occurrence is high
+        # stop the algorithm if there is no occurrence.
         total_count = self.count_request.nb_obs
         if total_count > int(__api_max_total_records__):
             self.dialog_too_many_results()
@@ -470,20 +431,21 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             month = today.strftime("%m")
             day = today.strftime("%d")
 
+            # create output layer name
             if not self.count_request.taxon_key:
                 if not self.count_request.scientific_name:
                     lyr_name = (
                         str(year)
                         + str(month)
                         + str(day)
-                        + "_GBIF_Occurences"
+                        + "_GBIF_Occurrences"
                     )
                 else:
                     lyr_name = (
                         str(year)
                         + str(month)
                         + str(day)
-                        + "_GBIF_Occurences_"
+                        + "_GBIF_Occurrences_"
                         + str(self.count_request.scientific_name)
                     )
             else:
@@ -491,7 +453,7 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                     str(year)
                     + str(month)
                     + str(day)
-                    + "_GBIF_Occurences_"
+                    + "_GBIF_Occurrences_"
                     + str(self.count_request.taxon_key)
                 )
             layer = create_and_add_layer(
@@ -500,10 +462,11 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
                 epsg_id=self.crs_selection.crs().postgisSrid()
             )
 
-            if int(total_count / int(__api_per_page_records__)) == 1:
-                total_pages = int(total_count / int(__api_per_page_records__))
-            else:
-                total_pages = int(total_count / int(__api_per_page_records__)) + 1  # noqa: E501
+            # launch batch download of occurrences
+            total_pages = calculate_pages(
+                int(total_count),
+                int(__api_per_page_records__)
+            )
             self.batch_request.total_pages = total_pages
             self.batch_request.download(
                 self.count_request.params,
@@ -521,7 +484,5 @@ class GBIFOccurrencesDialog(QDialog, FORM_CLASS):
             )
 
     def occurrences_results(self):
-
         self.after_search_ui()
-
         self.close()

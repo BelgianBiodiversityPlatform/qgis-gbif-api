@@ -7,12 +7,8 @@ from qgis.PyQt.QtNetwork import QNetworkReply, QNetworkRequest
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.core import QgsNetworkAccessManager, QgsProject
 
-from qgisgbifapi.tool import add_gbif_occ_to_layer
-from qgisgbifapi.__about__ import (
-    __api_endpoint__,
-    __api_occurrences_search__,
-    __api_per_page_records__,
-)
+from qgisgbifapi.tool import add_gbif_occ_to_layer, create_url
+from qgisgbifapi.__about__ import __api_per_page_records__
 
 
 class BatchRequest(QObject):
@@ -51,29 +47,18 @@ class BatchRequest(QObject):
     def pending_downloads(self):
         return self._pending_downloads
 
-    def create_url(self, params):
-        request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
-        for param in params:
-            if isinstance(params[param], list):
-                for elem in params[param]:
-                    request_url = request_url + str(param) + "=" + str(elem) + "&"  # noqa: E501
-            elif params[param] == "":
-                pass
-            elif params[param] is None:
-                pass
-            else:
-                request_url = request_url + str(param) + "=" + str(params[param]) + "&"  # noqa: E501
-        return request_url[:-1]
-
     def download(self, params, layer, total_obs):
-        request_url = self.create_url(params)
+        request_url = create_url(params)
         request = QNetworkRequest(QUrl(request_url))
+        # Add header to the request to add user agent
         request.setRawHeader(
             b"User-Agent",
             bytes('QGIS Plugin GBIF Occurrences', encoding="utf-8"),
         )
         request.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")  # noqa: E501
+        # launch request
         reply = self.network_manager.get(request)
+        # set function when finished signal is emited
         reply.finished.connect(
             lambda: self.handle_finished(
                 reply,
@@ -98,13 +83,16 @@ class BatchRequest(QObject):
             # Decode data fetch from the get request and create a dictionnary.
             data_request = reply.readAll().data().decode()
             resp = json.loads(data_request)
+
         if self.pending_downloads == 0:
+            # if no other downloads are needed, emit finished_dl signal
             if self.pending_pages > self.total_pages:
                 self.total_pages = 0
                 self._pending_pages = 0
                 self._pending_obs = 0
                 self.finished_dl.emit()
             else:
+                # get the number of downloaded data for the progress bar
                 if total_obs < int(__api_per_page_records__):
                     self._pending_obs = total_obs
                 elif total_obs - self._pending_obs < int(__api_per_page_records__):  # noqa: E501
@@ -112,6 +100,7 @@ class BatchRequest(QObject):
                 else:
                     self._pending_obs += int(__api_per_page_records__)
                 self.dlg.show_progress(self._pending_obs, total_obs)
+                # add data fetch from api to result layer
                 add_gbif_occ_to_layer(
                     self.project,
                     resp["results"],
@@ -119,6 +108,7 @@ class BatchRequest(QObject):
                     self.dlg.minimalCheckBox.isChecked(),
                     self.dlg.crs_selection.crs(),
                 )
+                # if the button stop is pressed emit the finished_dl signal
                 if self.dlg.stop:
                     self.dlg.stop = False
                     self.total_pages = 0
@@ -126,6 +116,8 @@ class BatchRequest(QObject):
                     self._pending_obs = 0
                     self.finished_dl.emit()
                 else:
+                    # change offset number
+                    # launch next download with new parameters
                     params["offset"] = self._pending_obs
                     self.download(params, layer, total_obs)
         reply.deleteLater()

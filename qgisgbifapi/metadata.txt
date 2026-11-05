@@ -60,3 +60,6 @@ warning_threshold=5000
 timeout_ms=60000
 list_minimal_mode_fields=key, datasetKey, occurrenceStatus, taxonRank, acceptedTaxonKey, acceptedScientificName, eventDate, recordedBy, identifiedBy, institutionCode, collectionCode
 crs=4326
+
+[ui]
+combobox_all_label=-- All --

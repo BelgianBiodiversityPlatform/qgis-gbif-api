@@ -7,10 +7,7 @@ from qgis.PyQt.QtNetwork import QNetworkReply, QNetworkRequest
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.core import QgsNetworkAccessManager
 
-from qgisgbifapi.__about__ import (
-    __api_endpoint__,
-    __api_occurrences_search__,
-)
+from qgisgbifapi.tool import create_url
 
 
 class CountRequest(QObject):
@@ -28,7 +25,10 @@ class CountRequest(QObject):
         self.dlg = dlg
         self.network_manager = manager
 
+        self.taxon_key = None
+        self.scientific_name = None
         self.params = None
+
         self.nb_obs = 0
         self._pending_downloads = 0
 
@@ -36,30 +36,22 @@ class CountRequest(QObject):
     def pending_downloads(self):
         return self._pending_downloads
 
-    def create_url(self):
-        request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
-        for param in self.params:
-            if isinstance(self.params[param], list):
-                for elem in self.params[param]:
-                    request_url = request_url + str(param) + "=" + str(elem) + "&"  # noqa: E501
-            elif self.params[param] == "":
-                pass
-            elif self.params[param] is None:
-                pass
-            else:
-                request_url = request_url + str(param) + "=" + str(self.params[param]) + "&"  # noqa: E501
-        return request_url[:-1]
-
     def download(self, params):
+        # set object property
+        self.taxon_key = params["taxonKey"]
+        self.scientific_name = params["scientificName"]
         self.params = params
         self.params['offset'] = 0
-        request_url = self.create_url()
+        # use parameters selected by user to create download url
+        request_url = create_url(self.params)
         request = QNetworkRequest(QUrl(request_url))
+        # add user-agent to identify the plugin
         request.setRawHeader(
             b"User-Agent",
             bytes('QGIS Plugin GBIF Occurrences', encoding="utf-8"),  # noqa: E501
         )
         request.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")  # noqa: E501
+        # launch download request
         reply = self.network_manager.get(request)
         reply.finished.connect(lambda: self.handle_finished(reply))
         self._pending_downloads += 1

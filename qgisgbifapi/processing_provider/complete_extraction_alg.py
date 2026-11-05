@@ -9,20 +9,12 @@
 ***************************************************************************
 """
 import datetime
-import json
 from operator import itemgetter
 from typing import Any, Optional
 
 from qgis.core import (
-    QgsApplication,
-    QgsProject,
-    QgsCoordinateTransform,
-    QgsReferencedGeometry,
     QgsBlockingNetworkRequest,
     QgsFeatureSink,
-    QgsVectorLayer,
-    QgsReferencedRectangle,
-    QgsRectangle,
     Qgis,
     QgsProcessingException,
     QgsCoordinateReferenceSystem,
@@ -37,81 +29,28 @@ from qgis.core import (
     QgsProcessingParameterExtent,
     QgsProcessingParameterEnum,
 )
-from qgis.PyQt.QtNetwork import QNetworkRequest
 from qgis.PyQt.QtCore import (
     QDateTime,
-    QUrl,
     QCoreApplication,
-    QDir,
-    QFile,
-    QByteArray,
-    QIODevice,
 )
 
-if Qgis.QGIS_VERSION_INT >= 40000:
-    from qgis.PyQt.QtCore import QIODeviceBase
-
 from qgisgbifapi.tool import (
-    create_and_add_layer,
+    blocking_occurrence_counting,
+    get_countries,
+    get_geometry,
+    manage_occurrences_counting,
     _finalize_filters,
-    add_gbif_occ_to_layer,
 )
 
 from qgisgbifapi.__about__ import (
     __api_crs__,
-    __api_endpoint__,
-    __api_occurrences_search__,
-    __api_max_total_records__,
-    __api_warning_threshold__,
     __api_per_page_records__,
+    __combobox_all_label__,
 )
 
-COMBOBOX_ALL_LABEL = "-- All --"
-
-
-def get_countries():
-    countries = []
-    countries_dict = {}
-    countries.append(COMBOBOX_ALL_LABEL)
-    countries_dict[COMBOBOX_ALL_LABEL] = ""
-    path = QDir(QgsApplication.metadataPath()).absoluteFilePath(
-        "country_code_ISO_3166.csv"
-    )
-    file = QFile(path)
-    if Qgis.QGIS_VERSION_INT >= 40000:
-        open_mode = QIODeviceBase.OpenModeFlag.ReadOnly
-    else:
-        open_mode = open_mode = QIODevice.ReadOnly
-    if not file.open(open_mode):
-        print(
-            "Error while opening the CSV file: {}, {} ".format(
-                path,
-                file.errorString()
-            )
-        )
-        return countries, countries_dict
-
-    file.readLine()
-    while not file.atEnd():
-        line = file.readLine()
-        items = line.split(QByteArray(",".encode()))
-        if len(items) > 9:
-            name = (
-                items[0].trimmed().data().decode()
-                + " "
-                + items[1].trimmed().data().decode()
-            )
-            alpha2 = items[2].trimmed().data().decode()
-        else:
-            name = items[0].trimmed().data().decode()
-            alpha2 = items[1].trimmed().data().decode()
-        countries.append(name.strip('"'))
-        countries_dict[name.strip('"')] = alpha2
-    file.close()
-    return countries, countries_dict
-
-
-countries, countries_dict = get_countries()
+countries_dict = get_countries()
+# Create list of basis of record
+# TODO find a way to get them online
 BOR = {
     "Fossilized specimen": "FOSSIL_SPECIMEN",
     "Human observation": "HUMAN_OBSERVATION",
@@ -125,6 +64,7 @@ BOR = {
     "Preserved specimen": "PRESERVED_SPECIMEN",
     "Unknown": "UNKNOWN",
 }
+# Create a list for default selection, every BOR is selected
 default_bor = []
 n = 0
 for elem in BOR:
@@ -241,9 +181,9 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
         country = QgsProcessingParameterEnum(
                 self.COUNTRY, self.tr("Country"),
-                defaultValue=COMBOBOX_ALL_LABEL,
+                defaultValue=__combobox_all_label__,
                 optional=True,
-                options=countries,
+                options=list(countries_dict.keys()),
             )
 
         country.setHelp(self.tr(
@@ -357,9 +297,9 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
         pub_country = QgsProcessingParameterEnum(
                 self.PUBLISHING_COUNTRY, self.tr("Publishing country"),
-                defaultValue=COMBOBOX_ALL_LABEL,
+                defaultValue=__combobox_all_label__,
                 optional=True,
-                options=countries,
+                options=list(countries_dict.keys()),
             )
 
         pub_country.setHelp(self.tr(
@@ -425,7 +365,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
                     str(year)
                     + str(month)
                     + str(day)
-                    + "_GBIF_Occurences"
+                    + "_GBIF_Occurrences"
                 )
             )
         )
@@ -441,6 +381,7 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         """
         output_crs = QgsCoordinateReferenceSystem("EPSG:" + str(__api_crs__))
 
+        # check if dates are valid
         if parameters["START_DATE"] is not None and parameters["END_DATE"] is not None:  # noqa: E501
             if parameters["END_DATE"] >= parameters["START_DATE"]:
                 event_date = "{min},{max}".format(
@@ -466,7 +407,8 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
         else:
             event_date = ""
 
-        geometry = self.get_geometry(parameters["EXTENT"], output_crs)
+        # create filters list depending on geometry or country or gadm_id
+        geometry = get_geometry(parameters["EXTENT"], output_crs)
         if geometry is not None:
             filters = {
                 "scientificName": parameters["SCIENTIFIC_NAME"],
@@ -517,179 +459,47 @@ class OccurrencesExtractionComplete(QgsProcessingAlgorithm):
 
         feedback.pushInfo(str(filters))
 
-        occ_count = self.occurrence_counting(_finalize_filters(filters))
-
-        layer = QgsVectorLayer()
-        if occ_count > int(__api_max_total_records__):
-            feedback.reportError(
-                self.tr("The query returned more than ")
-                + str(__api_max_total_records__)
-                + self.tr(" records. Due to limitations in the GBIF infrastructure, very large queries are currently not supported."),  # noqa: E501
-                True,
-            )
-            return {}
-        elif occ_count > 0:  # We have results
-            feedback.pushInfo(
-                self.tr("The query returned ")
-                + str(occ_count)
-                + self.tr(" records.")
-            )
-            if occ_count > int(__api_warning_threshold__):
-                feedback.pushWarning(
-                    self.tr("The number of records is very large (> ")
-                    + str(__api_warning_threshold__)
-                    + self.tr("). It may takes some times")
-                )
-            scientific_name = parameters["SCIENTIFIC_NAME"]
-            layer = create_and_add_layer(
-                project=None,
-                name=scientific_name,
-                epsg_id=parameters["CRS"].postgisSrid()
-            )
-
-            if int(occ_count / int(__api_per_page_records__)) == 1:
-                total_pages = int(occ_count / int(__api_per_page_records__))
-            else:
-                total_pages = (
-                    int(occ_count / int(__api_per_page_records__)) + 1
-                )
-
-            for page in range(total_pages):
-                filters["offset"] = int(page) * int(__api_per_page_records__)
-                self.batch_request(layer, filters, parameters)
-                # Update the progress bar
-                feedback.setProgress(int(int(page) / total_pages))
-                # Stop the algorithm if cancel button has been clicked
-                if feedback.isCanceled():
-                    break
-        else:
-            feedback.reportError(
-                self.tr("The query didn't returned record."),
-                True,
-            )
-            return {}
-
-        (sink, dest_id) = self.parameterAsSink(
-            parameters,
-            self.OUTPUT,
-            context,
-            layer.fields(),
-            Qgis.WkbType.Point,
-            parameters["CRS"],
+        # check occurrence number
+        occ_count = blocking_occurrence_counting(
+            self.ntwk_requester,
+            _finalize_filters(filters)
         )
 
-        # If sink was not created, throw an exception to indicate that
-        # the algorithm encountered a fatal error. The exception text
-        # can be any string, but in this case we use the pre-built
-        # invalidSinkError method to return a standard helper text
-        # for when a sink cannot be evaluated
-        if sink is None:
-            raise QgsProcessingException(
-                self.invalidSinkError(parameters, self.OUTPUT)
+        layer = manage_occurrences_counting(
+            self.ntwk_requester,
+            occ_count,
+            parameters,
+            filters,
+            feedback,
+            self.tr
+        )
+
+        if not layer:
+            return {}
+        else:
+            (sink, dest_id) = self.parameterAsSink(
+                parameters,
+                self.OUTPUT,
+                context,
+                layer.fields(),
+                Qgis.WkbType.Point,
+                parameters["CRS"],
             )
 
-        for f in layer.getFeatures():
-            sink.addFeature(f, QgsFeatureSink.FastInsert)
+            # If sink was not created, throw an exception to indicate that
+            # the algorithm encountered a fatal error. The exception text
+            # can be any string, but in this case we use the pre-built
+            # invalidSinkError method to return a standard helper text
+            # for when a sink cannot be evaluated
+            if sink is None:
+                raise QgsProcessingException(
+                    self.invalidSinkError(parameters, self.OUTPUT)
+                )
+
+            for f in layer.getFeatures():
+                sink.addFeature(f, QgsFeatureSink.FastInsert)
 
         return {self.OUTPUT: dest_id}
 
     def createInstance(self):
         return self.__class__()
-
-    def get_geometry(self, extent, output_crs):
-        if extent is not None:
-            point_list = extent.split(" ")[0]
-            crs = extent.split(" ")[1][1:-1]
-            xmin = point_list.split(",")[0]
-            xmax = point_list.split(",")[1]
-            ymin = point_list.split(",")[2]
-            ymax = point_list.split(",")[3]
-            rect = QgsRectangle()
-            rect.setXMaximum(float(xmax))
-            rect.setXMinimum(float(xmin))
-            rect.setYMaximum(float(ymax))
-            rect.setYMinimum(float(ymin))
-            extent = QgsReferencedGeometry().fromReferencedRect(
-                QgsReferencedRectangle(rect, QgsCoordinateReferenceSystem(crs))
-            )
-            extent.transform(
-                QgsCoordinateTransform(
-                    QgsCoordinateReferenceSystem(str(crs)),
-                    output_crs,
-                    QgsProject.instance(),
-                )
-            )
-            return extent.boundingBox().asWktPolygon()
-        else:
-            return ""
-
-    def create_url(self, params):
-        request_url = __api_endpoint__ + __api_occurrences_search__ + "?"
-        for param in params:
-            if isinstance(params[param], list):
-                for elem in params[param]:
-                    request_url = (
-                        request_url + str(param) + "=" + str(elem) + "&"
-                    )  # noqa: E501
-            elif params[param] == "":
-                pass
-            elif params[param] is None:
-                pass
-            else:
-                request_url = (
-                    request_url + str(param) + "=" + str(params[param]) + "&"
-                )  # noqa: E501
-        return request_url[:-1]
-
-    def occurrence_counting(self, params):
-        params["offset"] = 0
-        request_url = self.create_url(params)
-        request = QNetworkRequest(QUrl(request_url))
-        request.setRawHeader(
-            b"User-Agent",
-            bytes("QGIS Plugin GBIF Occurrences", encoding="utf-8"),  # noqa: E501
-        )
-        request.setHeader(
-            QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json"
-        )  # noqa: E501
-        self.ntwk_requester.get(
-            request=request,
-            forceRefresh=False,
-        )
-        req_reply = self.ntwk_requester.reply()
-        # Decode data fetch from the get request and create a dictionnary.
-        data_request = req_reply.content().data().decode()
-
-        res = json.loads(data_request)
-        # Get the observation number in the extent based on filters.
-        nb_obs = res["count"]
-        return nb_obs
-
-    def batch_request(self, layer, params, parameters):
-        request_url = self.create_url(params)
-        request = QNetworkRequest(QUrl(request_url))
-        request.setRawHeader(
-            b"User-Agent",
-            bytes("QGIS Plugin GBIF Occurrences", encoding="utf-8"),  # noqa: E501
-        )
-        request.setHeader(
-            QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json"
-        )  # noqa: E501
-        self.ntwk_requester.get(
-            request=request,
-            forceRefresh=False,
-        )
-        req_reply = self.ntwk_requester.reply()
-        # Decode data fetch from the get request and create a dictionnary.
-        data_request = req_reply.content().data().decode()
-        res = json.loads(data_request)
-        try:
-            add_gbif_occ_to_layer(
-                QgsProject.instance(),
-                res["results"],
-                layer,
-                False,
-                parameters["CRS"]
-            )
-        except TypeError:
-            print(res["results"])
